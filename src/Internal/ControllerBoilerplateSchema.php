@@ -30,19 +30,25 @@ class ControllerBoilerplateSchema
         $params = [];
         foreach ($methodParams as $m) {
             if ($m->var->name !== "accept" && $m->var->name !== null && $m->type->name !== null) {
-                $args[] = new Arg(
-                    new Variable($m->var->name)
-                );
+                if (!str_contains($m->var->name, 'headerParameters') ) {
+                    $args[] = new Arg(
+                        new Variable($m->var->name)
+                    );
+                }
+
                 if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
                     $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $m->type->name), 1));
                 }
                 if (str_contains($m->type->name, 'array')) {
                     $stmts[] = self::getQueryParamsResolver();
                 }
-                $params[] = new Param(
-                    new Variable($m->var->name)
-                );
 
+                if (!str_contains($m->type->name, 'Webpractik\Bitrixgen') && !str_contains($m->type->name, 'array')) {
+                    $params[] = new Param(
+                        new Variable($m->var->name)
+                    );
+
+                }
             }
         }
 
@@ -99,7 +105,7 @@ class ControllerBoilerplateSchema
     {
         $stmts[] = new Expression(
             new Assign(
-                new Variable("input"),
+                new Variable("requestBody"),
                 new StaticCall(
                     new MethodCall(
                         new Variable("this"),
@@ -118,7 +124,7 @@ class ControllerBoilerplateSchema
             )
         );
         $stmts[] = new Foreach_(
-            new Variable("input"),
+            new Variable("requestBody"),
             new Variable("v"),
             [
                 'keyVar' => new Variable("k"),
