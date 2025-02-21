@@ -1,0 +1,7 @@
+<?php
+
+return [
+    'openapi-file' => __DIR__ . '/openapi.json',
+    'namespace' => 'Webpractik\Bitrixgen',
+    'directory' => __DIR__ . '/local/modules/webpractik.bitrixgen/lib',
+];

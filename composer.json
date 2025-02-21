@@ -1,0 +1,29 @@
+{
+    "name": "webpractik/bitrixapigen",
+    "autoload": {
+        "psr-4": {
+            "Webpractik\\Bitrixapigen\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Petr Klenkin",
+            "email": "pk@webpractik.ru"
+        }
+    ],
+    "require-dev": {
+        "jane-php/open-api-3": "^7.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "bin": [
+        "src/bin/bitrixapigen"
+    ],
+    "require": {
+        "jane-php/open-api-runtime": "^7.8",
+        "nikic/php-parser": "^5.3"
+    }
+}
