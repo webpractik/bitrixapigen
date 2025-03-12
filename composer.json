@@ -12,7 +12,6 @@
         }
     ],
     "require-dev": {
-        "jane-php/open-api-3": "^7.8"
     },
     "config": {
         "allow-plugins": {
@@ -24,6 +23,7 @@
     ],
     "require": {
         "jane-php/open-api-runtime": "^7.8",
-        "nikic/php-parser": "^5.3"
+        "nikic/php-parser": "^5.3",
+        "jane-php/open-api-3": "^7.8"
     }
 }
