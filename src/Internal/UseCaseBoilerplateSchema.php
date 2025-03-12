@@ -42,6 +42,7 @@ class UseCaseBoilerplateSchema
 
         $dto = "";
         $returnType = [];
+        $isReturnTypeDtoArray = false;
         if (count($returnTypes) == 1) {
             if ($returnTypes[0] == "null") {
                 $returnType = new Identifier("null");
@@ -58,6 +59,7 @@ class UseCaseBoilerplateSchema
                     $dtoClassName = $v;
                     if (str_contains($v, '[]')) {
                         $dtoClassName = str_replace('[]', '', $dtoClassName);
+                        $isReturnTypeDtoArray = true;
                     }
                     $dto = new Name($dtoClassName);
                     if (str_contains($v, '[]')) {
@@ -71,14 +73,22 @@ class UseCaseBoilerplateSchema
 
         $stmts = [];
         if ($dto !== "") {
-            $stmts[] = new Return_(
-                new Array_([
-                    new ArrayItem(
-                        new New_(
-                            $dto
-                        )
-                    )])
-            );
+            if ($isReturnTypeDtoArray) {
+                $stmts[] = new Return_(
+                    new Array_([
+                        new ArrayItem(
+                            new New_(
+                                $dto
+                            )
+                        )])
+                );
+            } else {
+                $stmts[] = new Return_(
+                    new New_(
+                        $dto
+                    )
+                );
+            }
         } else {
             $stmts[] = new Return_(
                 new ConstFetch(new Name("null"))
