@@ -3,6 +3,8 @@
 namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
+use PhpParser\Node\ArrayItem;
+use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Variable;
@@ -53,8 +55,16 @@ class UseCaseBoilerplateSchema
                 if ($v == "null") {
                     $returnType[] = new Identifier("null");
                 } else {
-                    $dto = new Name($v);
-                    $returnType[] = new Name($v);
+                    $dtoClassName = $v;
+                    if (str_contains($v, '[]')) {
+                        $dtoClassName = str_replace('[]', '', $dtoClassName);
+                    }
+                    $dto = new Name($dtoClassName);
+                    if (str_contains($v, '[]')) {
+                        $returnType[] = new Identifier('array');
+                    } else {
+                        $returnType[] = new Name($v);
+                    }
                 }
             }
         }
@@ -62,9 +72,12 @@ class UseCaseBoilerplateSchema
         $stmts = [];
         if ($dto !== "") {
             $stmts[] = new Return_(
-                new New_(
-                    $dto
-                )
+                new Array_([
+                    new ArrayItem(
+                        new New_(
+                            $dto
+                        )
+                    )])
             );
         } else {
             $stmts[] = new Return_(
