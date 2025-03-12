@@ -3,18 +3,20 @@
 
 use Webpractik\Bitrixapigen\Adaptation\Application;
 
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../../../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../../../../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../../../../../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../../../../../../vendor/autoload.php');
-} elseif (file_exists(__DIR__ . '/../../../../../../../vendor/autoload.php')) {
-    require_once(__DIR__ . '/../../../../../../../vendor/autoload.php');
+$levels = 7;
+
+$autoloadPath = null;
+for ($i = 0; $i < $levels; $i++) {
+    $path = dirname(__DIR__, $i + 1) . '/vendor/autoload.php';
+    if (!file_exists($path)) {
+        continue;
+    }
+    $autoloadPath = $path;
+    break;
+}
+
+if ($autoloadPath) {
+    require_once($autoloadPath);
 } else {
     throw new \Exception('Unable to load autoloader');
 }
