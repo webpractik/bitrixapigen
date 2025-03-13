@@ -3,6 +3,8 @@
 namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
+use PhpParser\Node\ArrayItem;
+use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Variable;
@@ -40,6 +42,7 @@ class UseCaseBoilerplateSchema
 
         $dto = "";
         $returnType = [];
+        $isReturnTypeDtoArray = false;
         if (count($returnTypes) == 1) {
             if ($returnTypes[0] == "null") {
                 $returnType = new Identifier("null");
@@ -53,19 +56,39 @@ class UseCaseBoilerplateSchema
                 if ($v == "null") {
                     $returnType[] = new Identifier("null");
                 } else {
-                    $dto = new Name($v);
-                    $returnType[] = new Name($v);
+                    $dtoClassName = $v;
+                    if (str_contains($v, '[]')) {
+                        $dtoClassName = str_replace('[]', '', $dtoClassName);
+                        $isReturnTypeDtoArray = true;
+                    }
+                    $dto = new Name($dtoClassName);
+                    if (str_contains($v, '[]')) {
+                        $returnType[] = new Identifier('array');
+                    } else {
+                        $returnType[] = new Name($v);
+                    }
                 }
             }
         }
 
         $stmts = [];
         if ($dto !== "") {
-            $stmts[] = new Return_(
-                new New_(
-                    $dto
-                )
-            );
+            if ($isReturnTypeDtoArray) {
+                $stmts[] = new Return_(
+                    new Array_([
+                        new ArrayItem(
+                            new New_(
+                                $dto
+                            )
+                        )])
+                );
+            } else {
+                $stmts[] = new Return_(
+                    new New_(
+                        $dto
+                    )
+                );
+            }
         } else {
             $stmts[] = new Return_(
                 new ConstFetch(new Name("null"))
