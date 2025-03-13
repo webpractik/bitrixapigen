@@ -3,6 +3,7 @@
 namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
+use PhpParser\Modifiers;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Variable;
@@ -86,7 +87,7 @@ class UseCaseBoilerplateSchema
                             new ClassMethod(
                                 new Identifier("Process"),
                                 [
-                                    'flags' => Class_::MODIFIER_PUBLIC,
+                                    'flags' => Modifiers::PUBLIC,
                                     'params' => $params,
                                     'returnType' => count($returnTypes) == 1 ? $returnType : new UnionType($returnType),
                                     'stmts' => $stmts
