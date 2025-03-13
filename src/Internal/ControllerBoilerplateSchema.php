@@ -37,7 +37,8 @@ class ControllerBoilerplateSchema
                 }
 
                 if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
-                    $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $m->type->name), 1));
+                    $dtoTypeName = str_replace('?', '', $m->type->name);
+                    $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1));
                 }
                 if (str_contains($m->type->name, 'array')) {
                     $stmts[] = self::getQueryParamsResolver();
