@@ -6,6 +6,9 @@ use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
 use Jane\Component\JsonSchema\Guesser\Guess\Type;
 use PhpParser\Comment\Doc;
+use PhpParser\Modifiers;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Parser;
 
@@ -33,17 +36,21 @@ trait ModelPropertyGenerator
         if ((null !== $default && \is_scalar($default)) || (Type::TYPE_ARRAY === $property->getType()->getTypeHint($namespace)?->toString() && \is_array($default))) {
             $propertyStmt->default = $this->getDefaultAsExpr($default)->expr;
         }
-
-        return new Stmt\Property(Stmt\Class_::MODIFIER_PUBLIC, [
+        $type = $this->getPropertyType($property, $namespace);
+        return new Stmt\Property(Modifiers::PUBLIC, [
             $propertyStmt,
         ], [
             'comments' => [$this->createPropertyDoc($property, $namespace, $strict)],
-        ]);
+        ],
+            $type);
     }
 
     protected function createPropertyDoc(Property $property, $namespace, bool $strict): Doc
     {
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
+        if (str_contains($docTypeHint, '\\Model\\')) {
+            $docTypeHint = str_replace('\\Model\\', '\\Dto\\', $docTypeHint);
+        }
         if ((!$strict || $property->isNullable()) && strpos($docTypeHint, 'null') === false) {
             $docTypeHint .= '|null';
         }
@@ -76,5 +83,31 @@ EOD
     private function getDefaultAsExpr($value): Stmt\Expression
     {
         return $this->parser->parse('<?php ' . var_export($value, true) . ';')[0];
+    }
+
+    protected function getPropertyType(Property $property, string $namespace): null|Identifier|Name
+    {
+        $phpType = $property->getType()->getTypeHint($namespace)?->toString();
+
+        if ($phpType === null) {
+            return null; // Если нет типа, оставляем без него
+        }
+
+        // Простые скалярные типы
+        $scalarTypes = ['string', 'int', 'float', 'bool', 'array'];
+
+        if (in_array($phpType, $scalarTypes, true)) {
+            return new Identifier($phpType); // ✅ Возвращаем Identifier для скаляров
+        }
+
+        // Если это объект (например, \DateTime)
+        if ($phpType === '\DateTime') {
+            return new Name($phpType); // ✅ Используем FullyQualified
+        }
+
+        $phpType = str_replace('\\Model\\', '\\Dto\\', $phpType);
+
+        // Если это кастомный объект (например, Dto\Pet)
+        return new Name($phpType);
     }
 }
