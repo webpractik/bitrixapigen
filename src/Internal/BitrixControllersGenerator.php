@@ -169,8 +169,7 @@ class BitrixControllersGenerator implements GeneratorInterface
             'client'
         ));
 
-        $installData[] = BoilerplateSchema::getInstallFileBody();
-        $installNodes = new Stmt\Namespace_(new Name($schema->getNamespace()), $installData);
+        $installNodes = BoilerplateSchema::getInstallFileBody();
         $schema->addFile(new File(
             $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'install' . \DIRECTORY_SEPARATOR . "index" . '.php',
             $installNodes,
