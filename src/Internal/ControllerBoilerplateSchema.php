@@ -28,27 +28,31 @@ class ControllerBoilerplateSchema
         $stmts = [];
         $args = [];
         $params = [];
+
         foreach ($methodParams as $m) {
-            if ($m->var->name !== "accept" && $m->var->name !== null && $m->type->name !== null) {
+            $typeName = $m->type?->name ?? '';
+
+            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
                 if (!str_contains($m->var->name, 'headerParameters') ) {
                     $args[] = new Arg(
                         new Variable($m->var->name)
                     );
                 }
 
-                if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
-                    $dtoTypeName = str_replace('?', '', $m->type->name);
+
+
+                if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
+                    $dtoTypeName = str_replace('?', '', $typeName);
                     $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1));
                 }
-                if (str_contains($m->type->name, 'array')) {
+                if (str_contains($typeName, 'array')) {
                     $stmts[] = self::getQueryParamsResolver();
                 }
 
-                if (!str_contains($m->type->name, 'Webpractik\Bitrixgen') && !str_contains($m->type->name, 'array')) {
+                if (!str_contains($typeName, 'Webpractik\Bitrixgen') && !str_contains($typeName, 'array')) {
                     $params[] = new Param(
                         new Variable($m->var->name)
                     );
-
                 }
             }
         }
