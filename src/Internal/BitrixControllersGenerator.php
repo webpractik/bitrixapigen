@@ -89,12 +89,15 @@ class BitrixControllersGenerator implements GeneratorInterface
             ];
             $useStmts[] = $client;
 
-            $parser = (new ParserFactory())->createForNewestSupportedVersion();
-            try {
-                $ast = $parser->parse(file_get_contents($controllerFullPath));
-            } catch (Error $error) {
-                echo "Parse error: {$error->getMessage()}\n";
-                return;
+            $existClassAst = null;
+            if (file_exists($controllerFullPath)) {
+                $parser = (new ParserFactory())->createForNewestSupportedVersion();
+                try {
+                    $existClassAst = $parser->parse(file_get_contents($controllerFullPath));
+                } catch (Error $error) {
+                    echo "Parse error: {$error->getMessage()}\n";
+                    return;
+                }
             }
 
 
@@ -122,7 +125,9 @@ class BitrixControllersGenerator implements GeneratorInterface
                 $dPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . "lib" . \DIRECTORY_SEPARATOR . "UseCase" . \DIRECTORY_SEPARATOR . ucfirst($this->operationNaming->getFunctionName($operation)) . '.php';;
                 $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes));
             }
-            Treasurer::analyze($ast, $useStmts);
+            if ($existClassAst !== null) {
+                Treasurer::analyze($existClassAst, $useStmts);
+            }
             $node = new Stmt\Namespace_(new Name($schema->getNamespace()), $useStmts);
             $schema->addFile(new File(
                 $controllerFullPath,
