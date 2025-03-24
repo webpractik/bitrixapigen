@@ -2,6 +2,7 @@
 
 namespace Webpractik\Bitrixapigen\Internal;
 
+use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
@@ -14,7 +15,6 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Param;
 use PhpParser\Node\Scalar\String_;
-use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Foreach_;
@@ -96,7 +96,7 @@ class ControllerBoilerplateSchema
             new Identifier($name),
             [
                 'params' => $params,
-                'type' => Class_::MODIFIER_PUBLIC,
+                'type' => Modifiers::PUBLIC,
                 'stmts' => $stmts
             ]
         );
