@@ -61,7 +61,7 @@ class ControllerBoilerplateSchema
             new Assign(
                 new Variable("serviceLocator"),
                 new StaticCall(
-                    new FullyQualified("Bitrix\Main\DI\ServiceLocator\ServiceLocator"),
+                    new FullyQualified("Bitrix\Main\DI\ServiceLocator"),
                     new Identifier("getInstance")
                 )
             )
