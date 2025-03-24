@@ -2,6 +2,7 @@
 
 namespace Webpractik\Bitrixapigen\Internal;
 
+use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
@@ -191,6 +192,39 @@ class BoilerplateSchema
                 'extends' => new Name('CModule'),
                 'implements' => [],
                 'stmts' => [
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_ID')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_VERSION')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_VERSION_DATE')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_NAME')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_DESCRIPTION')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('MODULE_GROUP_RIGHTS')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('PARTNER_NAME')]
+                    ),
+                    new Stmt\Property(
+                        Modifiers::PUBLIC,
+                        [new Stmt\PropertyProperty('PARTNER_URI')]
+                    ),
+
                     new Stmt\ClassMethod(
                         new Node\Identifier('__construct'),
                         [
