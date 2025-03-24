@@ -75,7 +75,11 @@ class OperationGenerator
                 if ($v == "null") {
                     $returnType[] = new Identifier("null");
                 } else {
-                    $returnType[] = new Name\FullyQualified(mb_substr($v, 1));
+                    if (str_contains($v, '[]')) {
+                        $returnType[] = new Identifier('array');
+                    } else {
+                        $returnType[] = new Name\FullyQualified(mb_substr($v, 1));
+                    }
                 }
             }
         }
