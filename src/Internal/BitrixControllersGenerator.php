@@ -66,7 +66,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
         $routerMethods = BoilerplateSchema::getRouterBody();
 
-        $settingsGlobalFile = [
+        $includeGlobalFile = [
             new Stmt\Use_([new Node\UseItem(new Name("Bitrix\Main\DI\ServiceLocator"))]),
             new Stmt\Expression(
                 new Expr\Assign(
@@ -110,9 +110,9 @@ class BitrixControllersGenerator implements GeneratorInterface
 
             /** TODO здесь лежат операции */
             foreach ($value as $operation) {
-                $settingsGlobalFile[] = BoilerplateSchema::getFirstOpIfForSettings($this->operationNaming->getFunctionName($operation));
+                $includeGlobalFile[] = BoilerplateSchema::getFirstOpIfForSettings($this->operationNaming->getFunctionName($operation));
 
-                $settingsGlobalFile[] = BoilerplateSchema::getSecondOpIfForSettings($this->operationNaming->getFunctionName($operation));
+                $includeGlobalFile[] = BoilerplateSchema::getSecondOpIfForSettings($this->operationNaming->getFunctionName($operation));
 
 
                 $operationName = $this->operationNaming->getFunctionName($operation);
@@ -143,13 +143,8 @@ class BitrixControllersGenerator implements GeneratorInterface
             ));
         }
 
-        $schema->addFile(new File(
-            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . ".include" . '.php',
-            new Stmt\Nop([]),
-            'client'
-        ));
 
-        $settingsGlobalFile[] = new Stmt\Return_(
+        $includeGlobalFile[] = new Stmt\Return_(
             new Expr\Array_(
                 [
                     new Node\ArrayItem(
@@ -167,8 +162,8 @@ class BitrixControllersGenerator implements GeneratorInterface
             )
         );
         $schema->addFile(new File(
-            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . ".settings" . '.php',
-            new Stmt\Namespace_(new Name($schema->getNamespace()), $settingsGlobalFile),
+            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'include.php',
+            new Stmt\Namespace_(new Name($schema->getNamespace()), $includeGlobalFile),
             'client'
         ));
 
