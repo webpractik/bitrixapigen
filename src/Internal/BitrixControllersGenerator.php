@@ -117,7 +117,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
                 $operationName = $this->operationNaming->getFunctionName($operation) . 'Action';
                 $routerMethods->expr->stmts[] = BoilerplateSchema::getMethodForRouter(
-                    $operation->getMethod(), $operation->getPath(), ucfirst($key) . $this->getSuffix(), $operationName
+                    $operation->getMethod(), ltrim($operation->getPath(), '/'), ucfirst($key) . $this->getSuffix(), $operationName
                 );
                 $client->stmts[] = $this->operationGenerator->createOperation($operationName, $operation, $context);
 
