@@ -23,18 +23,20 @@ class UseCaseBoilerplateSchema
     {
         $params = [];
         foreach ($methodParams as $m) {
-            if ($m->var->name !== "accept" && $m->var->name !== null && $m->type->name !== null) {
-                if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
+            $typeName = $m->type?->name ?? '';
+
+            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+                if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Variable($m->var->name),
                         null,
-                        new Name(str_replace("Model", "Dto", $m->type->name))
+                        new Name(str_replace("Model", "Dto", $typeName))
                     );
                 } else {
                     $params[] = new Param(
                         new Variable($m->var->name),
                         null,
-                        new Identifier($m->type->name)
+                        new Identifier($m->type?->name)
                     );
                 }
             }
