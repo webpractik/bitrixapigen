@@ -87,7 +87,7 @@ class ControllerBoilerplateSchema
                     new Arg(
                         new MethodCall(
                             new Variable("class"),
-                            new Identifier("Process"),
+                            new Identifier('process'),
                             $args
                         )
                     )

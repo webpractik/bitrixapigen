@@ -105,7 +105,7 @@ class UseCaseBoilerplateSchema
                         ],
                         'stmts' => [
                             new ClassMethod(
-                                new Identifier("Process"),
+                                new Identifier('process'),
                                 [
                                     'flags' => Modifiers::PUBLIC,
                                     'params' => $params,

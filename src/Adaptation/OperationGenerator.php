@@ -129,7 +129,7 @@ class OperationGenerator
                         'stmts' => [
                             new Stmt\ClassMethod(
                                 new Identifier(
-                                    "Process",
+                                    'process',
                                 ),
                                 [
                                     'flags' => Modifiers::PUBLIC,
