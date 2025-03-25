@@ -144,7 +144,7 @@ class BitrixControllersGenerator implements GeneratorInterface
         }
 
         $schema->addFile(new File(
-            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . ".include" . '.php',
+            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'include.php',
             new Stmt\Nop([]),
             'client'
         ));
