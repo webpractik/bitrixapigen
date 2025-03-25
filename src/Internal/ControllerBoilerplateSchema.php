@@ -51,7 +51,8 @@ class ControllerBoilerplateSchema
 
                 if (!str_contains($typeName, 'Webpractik\Bitrixgen') && !str_contains($typeName, 'array')) {
                     $params[] = new Param(
-                        new Variable($m->var->name)
+                        var: new Variable($m->var->name),
+                        type: new Identifier($typeName)
                     );
                 }
             }
