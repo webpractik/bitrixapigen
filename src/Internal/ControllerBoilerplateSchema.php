@@ -33,7 +33,11 @@ class ControllerBoilerplateSchema
             $typeName = $m->type?->name ?? '';
 
             if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
-                if (!str_contains($m->var->name, 'headerParameters') ) {
+                if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
+                    $args[] = new Arg(
+                        new Variable('dto')
+                    );
+                } elseif (!str_contains($m->var->name, 'headerParameters') ) {
                     $args[] = new Arg(
                         new Variable($m->var->name)
                     );
@@ -44,12 +48,9 @@ class ControllerBoilerplateSchema
                 if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $dtoTypeName = str_replace('?', '', $typeName);
                     $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1));
-                }
-                if (str_contains($typeName, 'array')) {
+                } elseif (str_contains($typeName, 'array')) {
                     $stmts[] = self::getQueryParamsResolver();
-                }
-
-                if (!str_contains($typeName, 'Webpractik\Bitrixgen') && !str_contains($typeName, 'array')) {
+                } else {
                     $params[] = new Param(
                         var: new Variable($m->var->name),
                         type: new Identifier($typeName)
