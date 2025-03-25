@@ -97,7 +97,7 @@ class ControllerBoilerplateSchema
 
 
         return new ClassMethod(
-            new Identifier($name),
+            new Identifier($name . 'Action'),
             [
                 'params' => $params,
                 'type' => Modifiers::PUBLIC,
