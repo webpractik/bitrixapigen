@@ -5,6 +5,7 @@ namespace Webpractik\Bitrixapigen\Internal;
 use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -18,7 +19,10 @@ use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Foreach_;
+use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Scalar\LNumber;
 
 class ControllerBoilerplateSchema
 {
@@ -122,6 +126,33 @@ class ControllerBoilerplateSchema
                 )
             )
         );
+
+        $stmts[] = new If_(
+            new MethodCall(
+                new Variable('this->getRequest()'),
+                new Identifier('isJson'),
+                []
+            ),
+            [
+                'stmts' => [
+                    new Expression(
+                        new Assign(
+                            new Variable('requestBody'),
+                            new FuncCall(
+                                new FullyQualified('json_decode'),
+                                [
+                                    new Arg(new Variable('requestBody')),
+                                    new Arg(new ConstFetch(new Name('true'))),
+                                    new Arg(new LNumber(512)),
+                                    new Arg(new ConstFetch(new Name('JSON_THROW_ON_ERROR')))
+                                ]
+                            )
+                        )
+                    )
+                ]
+            ]
+        );
+
         $stmts[] = new Expression(
             new Assign(
                 new Variable("dto"),
