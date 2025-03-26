@@ -17,6 +17,7 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Scalar;
+use PhpParser\Node\Stmt\Nop;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Expr;
 use PhpParser\NodeDumper;
@@ -45,6 +46,7 @@ class BitrixControllersGenerator implements GeneratorInterface
     public function generate(Schema $schema, string $className, Context $context): void
     {
         $sortedByTags = [];
+        $controllersNamespace = $schema->getNamespace() . '\\Controllers';
 
         foreach ($schema->getOperations() as $operation) {
             if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
@@ -55,9 +57,12 @@ class BitrixControllersGenerator implements GeneratorInterface
 
         $routerContent = [];
 
+        $routerContent[] = BoilerplateSchema::getUse('Bitrix\\Main\\Routing\\RoutingConfigurator');
         foreach ($sortedByTags as $key => $value) {
-            $routerContent[] = BoilerplateSchema::getUse('Webpractik\Bitrixgen' . '\\' . ucfirst($key) . $this->getSuffix());
+            $controllerClassName = ucfirst($key) . $this->getSuffix();
+            $routerContent[] = BoilerplateSchema::getUse($controllersNamespace . '\\' . $controllerClassName);
         }
+        $routerContent[] = new Nop();
 
         $routerMethods = BoilerplateSchema::getRouterBody();
 
@@ -82,11 +87,13 @@ class BitrixControllersGenerator implements GeneratorInterface
 
         ];
         foreach ($sortedByTags as $key => $value) {
+            $controllerClassName = ucfirst($key) . $this->getSuffix();
             $controllerFullPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers' . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
-            $client = $this->createResourceClass($schema, ucfirst($key) . $this->getSuffix());
+            $client = $this->createResourceClass($schema, $controllerClassName);
             $useStmts = [
                 new Stmt\Use_([new Stmt\UseUse(new Name('Bitrix\Main\Engine\Controller'))]),
             ];
+            $useStmts[] = new Nop();
             $useStmts[] = $client;
 
             $existClassAst = null;
@@ -108,9 +115,9 @@ class BitrixControllersGenerator implements GeneratorInterface
                 $settingsGlobalFile[] = BoilerplateSchema::getSecondOpIfForSettings($this->operationNaming->getFunctionName($operation));
 
 
-                $operationName = $this->operationNaming->getFunctionName($operation) . 'Action';
+                $operationName = $this->operationNaming->getFunctionName($operation);
                 $routerMethods->expr->stmts[] = BoilerplateSchema::getMethodForRouter(
-                    $operation->getMethod(), $operation->getPath(), ucfirst($key) . $this->getSuffix(), $operationName
+                    $operation->getMethod(), ltrim($operation->getPath(), '/'), ucfirst($key) . $this->getSuffix(), $operationName
                 );
                 $client->stmts[] = $this->operationGenerator->createOperation($operationName, $operation, $context);
 
@@ -128,7 +135,7 @@ class BitrixControllersGenerator implements GeneratorInterface
             if ($existClassAst !== null) {
                 Treasurer::analyze($existClassAst, $useStmts);
             }
-            $node = new Stmt\Namespace_(new Name($schema->getNamespace()), $useStmts);
+            $node = new Stmt\Namespace_(new Name($controllersNamespace), $useStmts);
             $schema->addFile(new File(
                 $controllerFullPath,
                 $node,
@@ -137,7 +144,7 @@ class BitrixControllersGenerator implements GeneratorInterface
         }
 
         $schema->addFile(new File(
-            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . ".include" . '.php',
+            $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'include.php',
             new Stmt\Nop([]),
             'client'
         ));

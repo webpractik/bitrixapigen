@@ -68,8 +68,19 @@ class OperationGenerator
     {
         [$endpointName, $methodParams, $methodDoc, $returnTypes, $throwTypes] = $this->endpointGenerator->getInfoForInterface($operation, $context);
         $returnType = [];
+
         if (count($returnTypes) == 1) {
-            $returnType = new Name\FullyQualified($returnTypes[0]);
+            $v = reset($returnTypes);
+            if ($v == "null") {
+                $returnType = new Identifier('void');
+            } else {
+                if (str_contains($v, '[]')) {
+                    $returnType = new Identifier('array');
+                } else {
+                    $returnType = new Name\FullyQualified(mb_substr($v, 1));
+                }
+            }
+//            throw new \RuntimeException(var_export([$returnType], true));
         } else {
             foreach ($returnTypes as $v) {
                 if ($v == "null") {
@@ -118,7 +129,7 @@ class OperationGenerator
                         'stmts' => [
                             new Stmt\ClassMethod(
                                 new Identifier(
-                                    "Process",
+                                    'process',
                                 ),
                                 [
                                     'flags' => Modifiers::PUBLIC,

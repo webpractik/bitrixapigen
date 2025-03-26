@@ -48,7 +48,7 @@ class UseCaseBoilerplateSchema
         $isReturnTypeDtoArray = false;
         if (count($returnTypes) == 1) {
             if ($returnTypes[0] == "null") {
-                $returnType = new Identifier("null");
+                $returnType = new Identifier('void');
             } else {
                 $returnType = new Name\FullyQualified($returnTypes[0]);
                 $dto = new Name\FullyQualified($returnTypes[0]);
@@ -92,11 +92,6 @@ class UseCaseBoilerplateSchema
                     )
                 );
             }
-        } else {
-            $stmts[] = new Return_(
-                new ConstFetch(new Name("null"))
-            );
-
         }
         return new File(
             $dPath, new Namespace_(
@@ -110,7 +105,7 @@ class UseCaseBoilerplateSchema
                         ],
                         'stmts' => [
                             new ClassMethod(
-                                new Identifier("Process"),
+                                new Identifier('process'),
                                 [
                                     'flags' => Modifiers::PUBLIC,
                                     'params' => $params,
