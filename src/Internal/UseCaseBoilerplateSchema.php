@@ -29,7 +29,9 @@ class UseCaseBoilerplateSchema
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
-            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+            if ($m->var->name === "accept" || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
+                continue;
+            }
                 if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Variable($m->var->name),
@@ -43,7 +45,6 @@ class UseCaseBoilerplateSchema
                         new Identifier($m->type?->name)
                     );
                 }
-            }
         }
 
         $dto = "";

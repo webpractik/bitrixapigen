@@ -36,12 +36,14 @@ class ControllerBoilerplateSchema
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
-            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+            if ($m->var->name === "accept" || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
+                continue;
+            }
                 if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $args[] = new Arg(
                         new Variable('dto')
                     );
-                } elseif (!str_contains($m->var->name, 'headerParameters') ) {
+                } else {
                     $args[] = new Arg(
                         new Variable($m->var->name)
                     );
@@ -60,7 +62,6 @@ class ControllerBoilerplateSchema
                         type: new Identifier($typeName)
                     );
                 }
-            }
         }
 
         $stmts[] = new Expression(

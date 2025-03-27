@@ -83,7 +83,9 @@ class OperationGenerator
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
-            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+            if ($m->var->name === 'accept' || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
+                continue;
+            }
                 if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Expr\Variable($m->var->name),
@@ -97,7 +99,6 @@ class OperationGenerator
                         new Identifier($m->type?->name)
                     );
                 }
-            }
         }
 
 //        var_dump($params);
