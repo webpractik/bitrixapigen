@@ -132,7 +132,7 @@ class OperationGenerator
     private function getReturnType(string $v): Identifier|FullyQualified|Name
     {
         if ($v === 'null') {
-            return new Identifier('null');
+            return new Identifier('void');
         }
         if ($this->ifIsDtoArray($v)) {
             $dtoClassName = str_replace('[]', '', $v);
