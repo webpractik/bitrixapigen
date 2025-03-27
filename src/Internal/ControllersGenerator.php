@@ -29,7 +29,7 @@ trait ControllersGenerator
     protected function createResourceClass(Schema $schema, string $name): Stmt\Class_
     {
         return new Stmt\Class_($name, [
-            'extends' => new Name('Controller'),
+            'extends' => new Name('AbstractController'),
         ]);
     }
 

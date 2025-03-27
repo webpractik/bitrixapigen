@@ -161,24 +161,15 @@ class ControllerBoilerplateSchema
                 )
             )
         );
-        $stmts[] = new Foreach_(
-            new Variable("requestBody"),
-            new Variable("v"),
-            [
-                'keyVar' => new Variable("k"),
-                'byRef' => false,
-                'stmts' => [
-                    new Expression(
-                        new Assign(
-                            new PropertyFetch(
-                                new Variable("dto"),
-                                new Variable("k")
-                            ),
-                            new Variable("v")
-                        )
-                    )
+        $stmts[] = new Expression(
+            new MethodCall(
+                new Variable('this'),
+                'initializeDto',
+                [
+                    new Variable('dto'),
+                    new Variable('requestBody'),
                 ]
-            ]
+            )
         );
 
         return $stmts;

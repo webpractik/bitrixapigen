@@ -47,6 +47,7 @@ class BitrixControllersGenerator implements GeneratorInterface
     {
         $sortedByTags = [];
         $controllersNamespace = $schema->getNamespace() . '\\Controllers';
+        $controllerDirPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers';
 
         foreach ($schema->getOperations() as $operation) {
             if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
@@ -86,14 +87,14 @@ class BitrixControllersGenerator implements GeneratorInterface
             /** end repeatable */
 
         ];
+
+        $schema->addFile(AbstractControllerBoilerplateSchema::generate($controllerDirPath, $controllersNamespace, 'AbstractController'));
+
         foreach ($sortedByTags as $key => $value) {
             $controllerClassName = ucfirst($key) . $this->getSuffix();
-            $controllerFullPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers' . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
+            $controllerFullPath = $controllerDirPath . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
             $client = $this->createResourceClass($schema, $controllerClassName);
-            $useStmts = [
-                new Stmt\Use_([new Stmt\UseUse(new Name('Bitrix\Main\Engine\Controller'))]),
-            ];
-            $useStmts[] = new Nop();
+            $useStmts = [];
             $useStmts[] = $client;
 
             $existClassAst = null;
