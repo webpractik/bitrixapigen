@@ -11,6 +11,7 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\UnionType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
@@ -71,27 +72,10 @@ class OperationGenerator
 
         if (count($returnTypes) == 1) {
             $v = reset($returnTypes);
-            if ($v == "null") {
-                $returnType = new Identifier('void');
-            } else {
-                if (str_contains($v, '[]')) {
-                    $returnType = new Identifier('array');
-                } else {
-                    $returnType = new Name\FullyQualified(mb_substr($v, 1));
-                }
-            }
-//            throw new \RuntimeException(var_export([$returnType], true));
+            $returnType = $this->getReturnType($v);
         } else {
             foreach ($returnTypes as $v) {
-                if ($v == "null") {
-                    $returnType[] = new Identifier("null");
-                } else {
-                    if (str_contains($v, '[]')) {
-                        $returnType[] = new Identifier('array');
-                    } else {
-                        $returnType[] = new Name\FullyQualified(mb_substr($v, 1));
-                    }
-                }
+                $returnType[] = $this->getReturnType($v);
             }
         }
 
@@ -143,5 +127,28 @@ class OperationGenerator
                 )]),
             'client'
         );
+    }
+
+    private function getReturnType(string $v): Identifier|FullyQualified|Name
+    {
+        if ($v === 'null') {
+            return new Identifier('null');
+        }
+        if ($this->ifIsDtoArray($v)) {
+            $dtoClassName = str_replace('[]', '', $v);
+            return new Name($this->makeCollectionClassName($dtoClassName));
+        }
+
+        return new Name\FullyQualified(mb_substr($v, 1));
+    }
+
+    private function makeCollectionClassName(string $dtoClassName): string
+    {
+        return str_replace('\\Dto\\', '\\Dto\\Collection\\', $dtoClassName) . 'Collection';
+    }
+
+    private function ifIsDtoArray(string $v): bool
+    {
+        return str_contains($v, '[]') && str_contains($v, '\\Dto\\');
     }
 }

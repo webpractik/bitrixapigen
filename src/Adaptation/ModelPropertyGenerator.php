@@ -50,6 +50,11 @@ trait ModelPropertyGenerator
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
         if (str_contains($docTypeHint, '\\Model\\')) {
             $docTypeHint = str_replace('\\Model\\', '\\Dto\\', $docTypeHint);
+            if (preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Dto\\\\([^>]+)>$#', $docTypeHint, $matches)) {
+                $className = $matches[1];
+                $collectionClassName = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
+                $docTypeHint = preg_replace('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Dto\\\\([^>]+)>$#', $collectionClassName, $docTypeHint);
+            }
         }
         if ((!$strict || $property->isNullable()) && strpos($docTypeHint, 'null') === false) {
             $docTypeHint .= '|null';
@@ -93,6 +98,13 @@ EOD
             return null; // Если нет типа, оставляем без него
         }
 
+        $docTypeHint = $property->getType()->getDocTypeHint($namespace);
+        if ($phpType === 'array' && str_contains($docTypeHint, '\\Model\\') && preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
+            $className = $matches[1];
+            $collectionClass = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
+            return new Name($collectionClass);
+        }
+
         // Простые скалярные типы
         $scalarTypes = ['string', 'int', 'float', 'bool', 'array'];
 
@@ -102,7 +114,7 @@ EOD
 
         // Если это объект (например, \DateTime)
         if ($phpType === '\DateTime') {
-            return new Name($phpType); // ✅ Используем FullyQualified
+            return new Name($phpType);
         }
 
         $phpType = str_replace('\\Model\\', '\\Dto\\', $phpType);
