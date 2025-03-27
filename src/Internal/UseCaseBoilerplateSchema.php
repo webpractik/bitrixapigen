@@ -23,7 +23,7 @@ use PhpParser\Node\UnionType;
 
 class UseCaseBoilerplateSchema
 {
-    public static function getUseCaseBoilerplate($dPath, $dName, $opName, $methodParams, $returnTypes)
+    public static function getUseCaseBoilerplate(string $dPath, string $dName, string $opName, array $methodParams, array $returnTypes, bool $isOctetStreamFile)
     {
         $params = [];
         foreach ($methodParams as $m) {
@@ -45,6 +45,14 @@ class UseCaseBoilerplateSchema
                         new Identifier($m->type?->name)
                     );
                 }
+        }
+
+        if ($isOctetStreamFile) {
+            $params[] = new Param(
+                new Variable('octetStreamRawContent'),
+                null,
+                new Identifier('string')
+            );
         }
 
         $dto = "";

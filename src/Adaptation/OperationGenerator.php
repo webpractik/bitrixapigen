@@ -18,6 +18,7 @@ use PhpParser\Node\Stmt;
 use Psr\Http\Message\ResponseInterface;
 use Jane\Component\JsonSchema\Generator\File;
 use Webpractik\Bitrixapigen\Internal\ControllerBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class OperationGenerator
 {
@@ -52,10 +53,13 @@ class OperationGenerator
         $paramsPosition = $lastMethodParam === 'accept' ? \count($methodParams) - 1 : \count($methodParams);
         array_splice($methodParams, $paramsPosition, 0,);
 
+        $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
+
         /** методы в контроллер добавлять тут  */
         return ControllerBoilerplateSchema::getBoilerplateForProcessWithDtoBody(
             $name,
-            $methodParams
+            $methodParams,
+            $isOctetStreamFile
         );
     }
 
@@ -101,6 +105,14 @@ class OperationGenerator
                 }
         }
 
+        $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
+        if ($isOctetStreamFile) {
+            $params[] = new Param(
+                new Expr\Variable('octetStreamRawContent'),
+                null,
+                new Identifier('string')
+            );
+        }
 //        var_dump($params);
 
         return new File(

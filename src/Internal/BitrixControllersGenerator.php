@@ -24,6 +24,7 @@ use PhpParser\NodeDumper;
 use PhpParser\PrettyPrinter;
 use PhpParser\ParserFactory;
 use Webpractik\Bitrixapigen\Adaptation\OperationGenerator;
+use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class BitrixControllersGenerator implements GeneratorInterface
 {
@@ -115,6 +116,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
                 $settingsGlobalFile[] = BoilerplateSchema::getSecondOpIfForSettings($this->operationNaming->getFunctionName($operation));
 
+                $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
 
                 $operationName = $this->operationNaming->getFunctionName($operation);
                 $routerMethods->expr->stmts[] = BoilerplateSchema::getMethodForRouter(
@@ -131,7 +133,7 @@ class BitrixControllersGenerator implements GeneratorInterface
                 [$methodParams, $returnTypes] = $this->operationGenerator->getInfoForUseCase($operation, $context);
                 $dName = ucfirst($this->operationNaming->getFunctionName($operation));
                 $dPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . "lib" . \DIRECTORY_SEPARATOR . "UseCase" . \DIRECTORY_SEPARATOR . ucfirst($this->operationNaming->getFunctionName($operation)) . '.php';;
-                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes));
+                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes, $isOctetStreamFile));
             }
             if ($existClassAst !== null) {
                 Treasurer::analyze($existClassAst, $useStmts);
