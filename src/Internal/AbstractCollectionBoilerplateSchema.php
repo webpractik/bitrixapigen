@@ -84,6 +84,6 @@ PHP;
 
         $namespaceNode = reset($ast);
 
-        return new File($path . DIRECTORY_SEPARATOR . $className . '.php', $namespaceNode, 'collection');
+        return new File($path . DIRECTORY_SEPARATOR . $className . '.php', $namespaceNode, 'abstract');
     }
 }

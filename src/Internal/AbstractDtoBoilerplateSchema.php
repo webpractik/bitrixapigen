@@ -35,6 +35,6 @@ PHP;
 
         $namespaceNode = reset($ast);
 
-        return new File($path . '/' . $className . '.php', $namespaceNode, 'model');
+        return new File($path . '/' . $className . '.php', $namespaceNode, 'abstract');
     }
 }
