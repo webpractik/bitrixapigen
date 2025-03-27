@@ -72,10 +72,10 @@ class OperationGenerator
 
         if (count($returnTypes) == 1) {
             $v = reset($returnTypes);
-            $returnType = $this->getReturnType($v);
+            $returnType = $this->getReturnType(v: $v, isSingleReturnType: true);
         } else {
             foreach ($returnTypes as $v) {
-                $returnType[] = $this->getReturnType($v);
+                $returnType[] = $this->getReturnType($v, isSingleReturnType: false);
             }
         }
 
@@ -130,10 +130,15 @@ class OperationGenerator
         );
     }
 
-    private function getReturnType(string $v): Identifier|FullyQualified|Name
+    /**
+     * @param string $v
+     * @param bool $isSingleReturnType - у функции один тип возвращаемого значения?
+     * @return Identifier|FullyQualified|Name
+     */
+    private function getReturnType(string $v, bool $isSingleReturnType): Identifier|FullyQualified|Name
     {
         if ($v === 'null') {
-            return new Identifier('void');
+            return new Identifier($isSingleReturnType ? 'void' : 'null');
         }
         if ($this->ifIsDtoArray($v)) {
             $dtoClassName = str_replace('[]', '', $v);
