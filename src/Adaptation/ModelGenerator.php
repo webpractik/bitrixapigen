@@ -12,8 +12,18 @@ use Jane\Component\OpenApiCommon\Generator\Model\ClassGenerator;
 use Jane\Component\OpenApiCommon\Guesser\Guess\ClassGuess;
 use Jane\Component\OpenApiCommon\Guesser\Guess\ParentClass;
 use PhpParser\Comment\Doc;
+use PhpParser\Modifiers;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\UseItem;
+use Webpractik\Bitrixapigen\Internal\AbstractCollectionBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\AbstractDtoBoilerplateSchema;
+use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Stmt\Use_;
+use const DIRECTORY_SEPARATOR;
 
 class ModelGenerator extends BaseModelGenerator
 {
@@ -32,6 +42,12 @@ class ModelGenerator extends BaseModelGenerator
     public function generate(Schema $schema, string $className, Context $context): void
     {
         $namespace = $schema->getNamespace() . '\\Dto';
+        $dtoDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto';
+        $schema->addFile(AbstractDtoBoilerplateSchema::generate($dtoDirPath, $namespace, 'AbstractDto'));
+
+        $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
+        $collectionDirPath = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
+        $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
 
         foreach ($schema->getClasses() as $class) {
             $properties = [];
@@ -47,6 +63,12 @@ class ModelGenerator extends BaseModelGenerator
 
             $namespaceStmt = new Stmt\Namespace_(new Name($namespace), [$model]);
             $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $class->getName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
+
+            $collectionClassName = $class->getName() . 'Collection';
+            $collection = $this->createCollectionClass($class, $schema);
+            $collectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
+
+            $schema->addFile(new File($collectionPath, $collection, 'collection'));
         }
     }
 
@@ -77,7 +99,7 @@ class ModelGenerator extends BaseModelGenerator
         if (null !== $extends) {
             $classExtends = new Name($extends);
         } elseif ($hasExtensions) {
-            $classExtends = new Name('\ArrayObject');
+            $classExtends = new Name('AbstractDto');
         }
 
         $attributes = [];
@@ -98,6 +120,34 @@ EOD
                 'extends' => $classExtends,
             ],
             $attributes
+        );
+    }
+
+    protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
+    {
+        $dtoClassName = $this->getNaming()->getClassName($class->getName());
+        $collectionClassName = $dtoClassName . 'Collection';
+
+        $dtoFqcn = $schema->getNamespace() . '\\Dto\\' . $dtoClassName;
+
+        $useDto = new Use_([new UseItem(new Name($dtoFqcn))]);
+
+        $getItemTypeMethod = new ClassMethod('getItemType', [
+            'flags' => Modifiers::PUBLIC,
+            'returnType' => new Name('string'),
+            'stmts' => [
+                new Stmt\Return_(new ClassConstFetch(new Name($dtoClassName), 'class'))
+            ]
+        ]);
+
+        $classNode = new Class_($collectionClassName, [
+            'extends' => new Name('AbstractCollection'),
+            'stmts' => [$getItemTypeMethod]
+        ]);
+
+        return new Namespace_(
+            new Name($schema->getNamespace() . '\\Dto\\Collection'),
+            [$useDto, $classNode]
         );
     }
 }

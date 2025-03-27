@@ -11,12 +11,14 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\UnionType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use Psr\Http\Message\ResponseInterface;
 use Jane\Component\JsonSchema\Generator\File;
 use Webpractik\Bitrixapigen\Internal\ControllerBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class OperationGenerator
 {
@@ -51,10 +53,13 @@ class OperationGenerator
         $paramsPosition = $lastMethodParam === 'accept' ? \count($methodParams) - 1 : \count($methodParams);
         array_splice($methodParams, $paramsPosition, 0,);
 
+        $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
+
         /** методы в контроллер добавлять тут  */
         return ControllerBoilerplateSchema::getBoilerplateForProcessWithDtoBody(
             $name,
-            $methodParams
+            $methodParams,
+            $isOctetStreamFile
         );
     }
 
@@ -71,27 +76,10 @@ class OperationGenerator
 
         if (count($returnTypes) == 1) {
             $v = reset($returnTypes);
-            if ($v == "null") {
-                $returnType = new Identifier('void');
-            } else {
-                if (str_contains($v, '[]')) {
-                    $returnType = new Identifier('array');
-                } else {
-                    $returnType = new Name\FullyQualified(mb_substr($v, 1));
-                }
-            }
-//            throw new \RuntimeException(var_export([$returnType], true));
+            $returnType = $this->getReturnType(v: $v, isSingleReturnType: true);
         } else {
             foreach ($returnTypes as $v) {
-                if ($v == "null") {
-                    $returnType[] = new Identifier("null");
-                } else {
-                    if (str_contains($v, '[]')) {
-                        $returnType[] = new Identifier('array');
-                    } else {
-                        $returnType[] = new Name\FullyQualified(mb_substr($v, 1));
-                    }
-                }
+                $returnType[] = $this->getReturnType($v, isSingleReturnType: false);
             }
         }
 
@@ -99,7 +87,9 @@ class OperationGenerator
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
-            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+            if ($m->var->name === 'accept' || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
+                continue;
+            }
                 if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Expr\Variable($m->var->name),
@@ -113,9 +103,16 @@ class OperationGenerator
                         new Identifier($m->type?->name)
                     );
                 }
-            }
         }
 
+        $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
+        if ($isOctetStreamFile) {
+            $params[] = new Param(
+                new Expr\Variable('octetStreamRawContent'),
+                null,
+                new Identifier('string')
+            );
+        }
 //        var_dump($params);
 
         return new File(
@@ -143,5 +140,33 @@ class OperationGenerator
                 )]),
             'client'
         );
+    }
+
+    /**
+     * @param string $v
+     * @param bool $isSingleReturnType - у функции один тип возвращаемого значения?
+     * @return Identifier|FullyQualified|Name
+     */
+    private function getReturnType(string $v, bool $isSingleReturnType): Identifier|FullyQualified|Name
+    {
+        if ($v === 'null') {
+            return new Identifier($isSingleReturnType ? 'void' : 'null');
+        }
+        if ($this->ifIsDtoArray($v)) {
+            $dtoClassName = str_replace('[]', '', $v);
+            return new Name($this->makeCollectionClassName($dtoClassName));
+        }
+
+        return new Name\FullyQualified(mb_substr($v, 1));
+    }
+
+    private function makeCollectionClassName(string $dtoClassName): string
+    {
+        return str_replace('\\Dto\\', '\\Dto\\Collection\\', $dtoClassName) . 'Collection';
+    }
+
+    private function ifIsDtoArray(string $v): bool
+    {
+        return str_contains($v, '[]') && str_contains($v, '\\Dto\\');
     }
 }
