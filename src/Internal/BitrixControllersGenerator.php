@@ -133,7 +133,7 @@ class BitrixControllersGenerator implements GeneratorInterface
                 [$methodParams, $returnTypes] = $this->operationGenerator->getInfoForUseCase($operation, $context);
                 $dName = ucfirst($this->operationNaming->getFunctionName($operation));
                 $dPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . "lib" . \DIRECTORY_SEPARATOR . "UseCase" . \DIRECTORY_SEPARATOR . ucfirst($this->operationNaming->getFunctionName($operation)) . '.php';;
-                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes, $isOctetStreamFile));
+                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($operation, $dPath, $dName, $operationName, $methodParams, $returnTypes, $isOctetStreamFile));
             }
             if ($existClassAst !== null) {
                 Treasurer::analyze($existClassAst, $useStmts);
