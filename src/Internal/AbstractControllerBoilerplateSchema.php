@@ -24,6 +24,7 @@ use ReflectionProperty;
 use RuntimeException;
 use Webpractik\Bitrixgen\Dto\AbstractDto;
 use Webpractik\Bitrixgen\Dto\Collection\AbstractCollection;
+use DateTime;
 
 class $className extends Controller
 {
@@ -62,6 +63,8 @@ class $className extends Controller
                     \$dtoObject = new (\$property->getType()->getName())();
                     \$this->initializeDto(\$dtoObject, \$value); // Рекурсивно инициализируем DTO
                     \$dto->{\$propertyName} = \$dtoObject;
+                 } elseif (\$property->getType()->getName() === 'DateTime') {
+                    \$dto->{\$propertyName} = DateTime::createFromFormat(DATE_ATOM, \$value);
                 } else {
                     \$dto->{\$propertyName} = \$value;
                 }
