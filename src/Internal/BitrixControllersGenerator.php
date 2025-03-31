@@ -24,6 +24,7 @@ use PhpParser\NodeDumper;
 use PhpParser\PrettyPrinter;
 use PhpParser\ParserFactory;
 use Webpractik\Bitrixapigen\Adaptation\OperationGenerator;
+use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class BitrixControllersGenerator implements GeneratorInterface
 {
@@ -47,6 +48,7 @@ class BitrixControllersGenerator implements GeneratorInterface
     {
         $sortedByTags = [];
         $controllersNamespace = $schema->getNamespace() . '\\Controllers';
+        $controllerDirPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers';
 
         foreach ($schema->getOperations() as $operation) {
             if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
@@ -86,14 +88,14 @@ class BitrixControllersGenerator implements GeneratorInterface
             /** end repeatable */
 
         ];
+
+        $schema->addFile(AbstractControllerBoilerplateSchema::generate($controllerDirPath, $controllersNamespace, 'AbstractController'));
+
         foreach ($sortedByTags as $key => $value) {
             $controllerClassName = ucfirst($key) . $this->getSuffix();
-            $controllerFullPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers' . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
+            $controllerFullPath = $controllerDirPath . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
             $client = $this->createResourceClass($schema, $controllerClassName);
-            $useStmts = [
-                new Stmt\Use_([new Stmt\UseUse(new Name('Bitrix\Main\Engine\Controller'))]),
-            ];
-            $useStmts[] = new Nop();
+            $useStmts = [];
             $useStmts[] = $client;
 
             $existClassAst = null;
@@ -114,6 +116,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
                 $settingsGlobalFile[] = BoilerplateSchema::getSecondOpIfForSettings($this->operationNaming->getFunctionName($operation));
 
+                $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
 
                 $operationName = $this->operationNaming->getFunctionName($operation);
                 $routerMethods->expr->stmts[] = BoilerplateSchema::getMethodForRouter(
@@ -130,7 +133,7 @@ class BitrixControllersGenerator implements GeneratorInterface
                 [$methodParams, $returnTypes] = $this->operationGenerator->getInfoForUseCase($operation, $context);
                 $dName = ucfirst($this->operationNaming->getFunctionName($operation));
                 $dPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . "lib" . \DIRECTORY_SEPARATOR . "UseCase" . \DIRECTORY_SEPARATOR . ucfirst($this->operationNaming->getFunctionName($operation)) . '.php';;
-                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes));
+                $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($dPath, $dName, $operationName, $methodParams, $returnTypes, $isOctetStreamFile));
             }
             if ($existClassAst !== null) {
                 Treasurer::analyze($existClassAst, $useStmts);

@@ -27,7 +27,7 @@ use PhpParser\Node\Scalar\LNumber;
 class ControllerBoilerplateSchema
 {
 
-    public static function getBoilerplateForProcessWithDtoBody($name, $methodParams): ClassMethod
+    public static function getBoilerplateForProcessWithDtoBody(string $name, array $methodParams, bool $isOctetStreamFile): ClassMethod
     {
         $stmts = [];
         $args = [];
@@ -36,12 +36,14 @@ class ControllerBoilerplateSchema
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
-            if ($m->var->name !== "accept" && $m->var->name !== null && $typeName !== '') {
+            if ($m->var->name === "accept" || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
+                continue;
+            }
                 if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $args[] = new Arg(
                         new Variable('dto')
                     );
-                } elseif (!str_contains($m->var->name, 'headerParameters') ) {
+                } else {
                     $args[] = new Arg(
                         new Variable($m->var->name)
                     );
@@ -60,7 +62,23 @@ class ControllerBoilerplateSchema
                         type: new Identifier($typeName)
                     );
                 }
-            }
+        }
+
+        if ($isOctetStreamFile) {
+            $args[] = new Arg(
+                new Variable('octetStreamRawContent')
+            );
+            $stmts[] = new Expression(
+                new Assign(
+                    new Variable('octetStreamRawContent'),
+                    new FuncCall(
+                        new Name('file_get_contents'),
+                        [
+                            new Arg(new String_('php://input'))
+                        ]
+                    )
+                )
+            );
         }
 
         $stmts[] = new Expression(
@@ -161,24 +179,15 @@ class ControllerBoilerplateSchema
                 )
             )
         );
-        $stmts[] = new Foreach_(
-            new Variable("requestBody"),
-            new Variable("v"),
-            [
-                'keyVar' => new Variable("k"),
-                'byRef' => false,
-                'stmts' => [
-                    new Expression(
-                        new Assign(
-                            new PropertyFetch(
-                                new Variable("dto"),
-                                new Variable("k")
-                            ),
-                            new Variable("v")
-                        )
-                    )
+        $stmts[] = new Expression(
+            new MethodCall(
+                new Variable('this'),
+                'initializeDto',
+                [
+                    new Variable('dto'),
+                    new Variable('requestBody'),
                 ]
-            ]
+            )
         );
 
         return $stmts;
