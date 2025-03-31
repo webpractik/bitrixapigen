@@ -61,19 +61,22 @@ class ControllerBoilerplateSchema
                     $dtoNameResolver = DtoNameResolver::createByFullDtoClassName($arElementType);
                     $collectionClassName = new Name($dtoNameResolver->getFullCollectionClassName());
                     $stmts = self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1));
-                    continue;
+                } else {
+                    $args[] = new Arg(
+                        new Variable($m->var->name)
+                    );
+                    $stmts[] = self::getQueryParamsResolver();
                 }
+                continue;
             }
-
-            $stmts[] = self::getQueryParamsResolver();
 
             $args[] = new Arg(
                 new Variable($m->var->name)
             );
-                    $params[] = new Param(
-                        var: new Variable($m->var->name),
-                        type: new Identifier($typeName)
-                    );
+            $params[] = new Param(
+                var: new Variable($m->var->name),
+                type: new Identifier($typeName)
+            );
         }
 
         if ($isOctetStreamFile) {
