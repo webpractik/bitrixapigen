@@ -4,7 +4,7 @@ namespace Webpractik\Bitrixapigen\Internal\Wrappers;
 
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
 
-readonly class OperationWrapper
+class OperationWrapper
 {
     public function __construct(private OperationGuess $operation)
     {
