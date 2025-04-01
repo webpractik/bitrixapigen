@@ -28,6 +28,11 @@ use Webpractik\Bitrixgen\Dto\Collection\AbstractCollection;
 class $className extends Controller
 {
     protected const int RECURSION_DEPTH_LIMIT = 20;
+    
+    protected function getDefaultPreFilters(): array
+    {
+        return [];
+    }
 
     protected function initializeDtoCollection(AbstractCollection \$collection, array \$data, int \$depth = 0): void
     {
