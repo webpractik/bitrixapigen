@@ -6,7 +6,7 @@ use Jane\Component\JsonSchemaRuntime\Reference;
 use Jane\Component\OpenApi3\JsonSchema\Model\Schema;
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
 
-readonly class OperationWrapper
+class OperationWrapper
 {
     public function __construct(private OperationGuess $operation)
     {
