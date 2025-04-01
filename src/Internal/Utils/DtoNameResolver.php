@@ -1,6 +1,6 @@
 <?php
 
-namespace Webpractik\Bitrixapigen\Internal;
+namespace Webpractik\Bitrixapigen\Internal\Utils;
 
 /**
  * @internal
