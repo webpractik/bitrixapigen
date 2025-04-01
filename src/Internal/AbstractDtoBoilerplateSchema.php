@@ -17,10 +17,9 @@ class AbstractDtoBoilerplateSchema
 
 namespace $namespace;
 
-use ArrayObject;
 use JsonSerializable;
 
-abstract class $className extends ArrayObject implements JsonSerializable
+abstract class $className implements JsonSerializable
 {
     public function jsonSerialize(): array
     {

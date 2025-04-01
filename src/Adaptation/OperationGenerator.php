@@ -9,6 +9,7 @@ use PhpParser\Comment;
 use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
@@ -57,6 +58,7 @@ class OperationGenerator
 
         /** методы в контроллер добавлять тут  */
         return ControllerBoilerplateSchema::getBoilerplateForProcessWithDtoBody(
+            $operation,
             $name,
             $methodParams,
             $isOctetStreamFile
@@ -96,13 +98,27 @@ class OperationGenerator
                         null,
                         new Name(str_replace("Model", "Dto", $typeName))
                     );
-                } else {
+                    continue;
+                }
+
+            if (str_contains($typeName, 'array')) {
+                $arElementType = (new OperationWrapper($operation))->getArrayItemType();
+                if (str_contains($arElementType, '\\Dto\\')) {
+                    $collectionClass = new Name(self::makeCollectionClassName($arElementType));
+                    $params[] = new Param(
+                        new Variable($m->var->name),
+                        null,
+                        $collectionClass
+                    );
+                }
+                continue;
+            }
+
                     $params[] = new Param(
                         new Expr\Variable($m->var->name),
                         null,
                         new Identifier($m->type?->name)
                     );
-                }
         }
 
         $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();

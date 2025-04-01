@@ -3,6 +3,7 @@
 namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
+use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
 use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Modifiers;
@@ -20,10 +21,11 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\UnionType;
+use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class UseCaseBoilerplateSchema
 {
-    public static function getUseCaseBoilerplate(string $dPath, string $dName, string $opName, array $methodParams, array $returnTypes, bool $isOctetStreamFile)
+    public static function getUseCaseBoilerplate(OperationGuess $operation, string $dPath, string $dName, string $opName, array $methodParams, array $returnTypes, bool $isOctetStreamFile)
     {
         $params = [];
         foreach ($methodParams as $m) {
@@ -38,13 +40,27 @@ class UseCaseBoilerplateSchema
                         null,
                         new Name(str_replace("Model", "Dto", $typeName))
                     );
-                } else {
+                    continue;
+                }
+
+            if (str_contains($typeName, 'array')) {
+                $arElementType = (new OperationWrapper($operation))->getArrayItemType();
+                if (str_contains($arElementType, '\\Dto\\')) {
+                    $collectionClass = new Name(self::makeCollectionClassName($arElementType));
+                    $params[] = new Param(
+                        new Variable($m->var->name),
+                        null,
+                        $collectionClass
+                    );
+                }
+                continue;
+            }
+
                     $params[] = new Param(
                         new Variable($m->var->name),
                         null,
                         new Identifier($m->type?->name)
                     );
-                }
         }
 
         if ($isOctetStreamFile) {
