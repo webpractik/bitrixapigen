@@ -8,9 +8,9 @@ namespace Webpractik\Bitrixapigen\Internal;
  */
 class DtoNameResolver
 {
-    private const string MODULE_NAMESPACE = 'Webpractik\\Bitrixgen';
-    private const string DTO_NAMESPACE = 'Dto';
-    private const string COLLECTION_NAMESPACE = 'Collection';
+    private const MODULE_NAMESPACE = 'Webpractik\\Bitrixgen';
+    private const DTO_NAMESPACE = 'Dto';
+    private const COLLECTION_NAMESPACE = 'Collection';
 
     private function __construct(private string $modelName)
     {
