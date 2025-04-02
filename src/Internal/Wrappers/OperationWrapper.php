@@ -5,9 +5,15 @@ namespace Webpractik\Bitrixapigen\Internal\Wrappers;
 use Jane\Component\JsonSchemaRuntime\Reference;
 use Jane\Component\OpenApi3\JsonSchema\Model\Schema;
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 class OperationWrapper
 {
+    /**
+     * Название кастомного атрибута для обозначения роутов, которые должны возвращать результат роута в битриксовом формате {status:"success", data:{}, errors:[]}
+     */
+    private const ATTRIBUTE_BITRIX_FORMAT = 'x-bitrix-format';
+
     public function __construct(private OperationGuess $operation)
     {
     }
@@ -77,10 +83,20 @@ class OperationWrapper
         } elseif (($items instanceof Reference)) {
             $mergedUri = (string)$items->getMergedUri();
             if (preg_match('#/components/schemas/(.+)$#', $mergedUri, $matches)) {
-                return '\\Webpractik\\Bitrixgen\\Dto\\' . $matches[1];
+                return DtoNameResolver::createByModelName($matches[1])->getFullDtoClassName();
             }
         }
 
         return null;
+    }
+
+    /**
+     * Возвращает ли роут ответ в битриксовом формате {status:"success", data:{}, errors:[]}
+     * @return bool
+     */
+    public function isBitrixFormat(): bool
+    {
+        $operationData = $this->operation->getOperation();
+        return isset($operationData[self::ATTRIBUTE_BITRIX_FORMAT]) && $operationData[self::ATTRIBUTE_BITRIX_FORMAT] === true;
     }
 }

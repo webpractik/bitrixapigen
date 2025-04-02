@@ -172,6 +172,7 @@
     },
     "/pet/findByStatus": {
       "get": {
+        "x-bitrix-format": true,
         "tags": [
           "pet"
         ],
