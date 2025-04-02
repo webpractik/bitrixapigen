@@ -30,6 +30,7 @@ class ControllerBoilerplateSchema
 
     public static function getBoilerplateForProcessWithDtoBody(OperationGuess $operation, string $name, array $methodParams, bool $isOctetStreamFile): ClassMethod
     {
+        $operationWrapped = (new OperationWrapper($operation));
         $stmts = [];
         $args = [];
         $params = [];
@@ -51,7 +52,7 @@ class ControllerBoilerplateSchema
             }
 
             if (str_contains($typeName, 'array')) {
-                $arElementType = (new OperationWrapper($operation))->getArrayItemType();
+                $arElementType = $operationWrapped->getArrayItemType();
 
                 if ($arElementType !== null && DtoNameResolver::isFullDtoClassName($arElementType)) {
                     $args[] = new Arg(
@@ -118,20 +119,29 @@ class ControllerBoilerplateSchema
                 )
             )
         );
-        $stmts[] = new Return_(
-            new New_(
-                new FullyQualified("Bitrix\Main\Engine\Response\Json"),
-                [
-                    new Arg(
-                        new MethodCall(
-                            new Variable("class"),
-                            new Identifier('process'),
-                            $args
-                        )
-                    )
-                ]
-            )
+
+        $useCaseCallMethod = new MethodCall(
+            new Variable("class"),
+            new Identifier('process'),
+            $args
         );
+
+        if ($operationWrapped->isBitrixFormat()) {
+            $stmts[] = new Return_(
+                $useCaseCallMethod
+            );
+        } else {
+            $stmts[] = new Return_(
+                new New_(
+                    new FullyQualified("Bitrix\Main\Engine\Response\Json"),
+                    [
+                        new Arg(
+                            $useCaseCallMethod
+                        )
+                    ]
+                )
+            );
+        }
 
 
         return new ClassMethod(
