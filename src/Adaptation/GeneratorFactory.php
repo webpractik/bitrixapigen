@@ -9,7 +9,6 @@ use Jane\Component\OpenApi3\Generator\RequestBodyContent\DefaultBodyContentGener
 use Jane\Component\OpenApi3\Generator\RequestBodyContent\FormBodyContentGenerator;
 use Jane\Component\OpenApi3\Generator\RequestBodyContent\JsonBodyContentGenerator;
 use Jane\Component\OpenApi3\Generator\RequestBodyGenerator;
-use Jane\Component\OpenApiCommon\Generator\ExceptionGenerator;
 use Jane\Component\OpenApiCommon\Naming\ChainOperationNaming;
 use Jane\Component\OpenApiCommon\Naming\OperationIdNaming;
 use Jane\Component\OpenApiCommon\Naming\OperationUrlNaming;
