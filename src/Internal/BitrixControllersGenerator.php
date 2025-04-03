@@ -50,6 +50,8 @@ class BitrixControllersGenerator implements GeneratorInterface
         $controllersNamespace = $schema->getNamespace() . '\\Controllers';
         $controllerDirPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers';
 
+        $schema->addFile(JsonResponseBoilerplateSchema::generate($schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Response'));
+
         foreach ($schema->getOperations() as $operation) {
             if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
                 $sortedByTags[$operation->getOperation()->getTags()[0]] = [];
