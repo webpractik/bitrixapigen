@@ -22,8 +22,6 @@ class ExceptionGenerator extends JaneExceptionGenerator
         $namespace = $schema->getNamespace() . '\\Exception';
         $dir = $schema->getDirectory() . '/Exception';
 
-        // === Генерация класса BitrixFormatException ===
-
         $class = new Stmt\Class_(
             'BitrixFormatException',
             [
@@ -34,7 +32,6 @@ class ExceptionGenerator extends JaneExceptionGenerator
             ]
         );
 
-        // Метод static from(Throwable $e): self
         $fromMethod = new Stmt\ClassMethod('from', [
             'flags' => Modifiers::PUBLIC | Modifiers::STATIC,
             'params' => [
@@ -54,7 +51,6 @@ class ExceptionGenerator extends JaneExceptionGenerator
 
         $class->stmts[] = $fromMethod;
 
-        // Пространство имён с use-ами
         $namespaceNode = new Stmt\Namespace_(new Name($namespace), [
             new Stmt\Use_([new Stmt\UseUse(new Name('RuntimeException'))]),
             new Stmt\Use_([new Stmt\UseUse(new Name('Throwable'))]),
