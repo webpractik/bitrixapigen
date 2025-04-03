@@ -56,10 +56,8 @@ class ExceptionGenerator extends JaneExceptionGenerator
 
         // Пространство имён с use-ами
         $namespaceNode = new Stmt\Namespace_(new Name($namespace), [
-            new Stmt\Use_([
-                new Stmt\UseUse(new Name('RuntimeException')),
-                new Stmt\UseUse(new Name('Throwable')),
-            ]),
+            new Stmt\Use_([new Stmt\UseUse(new Name('RuntimeException'))]),
+            new Stmt\Use_([new Stmt\UseUse(new Name('Throwable'))]),
             $class,
         ]);
 
