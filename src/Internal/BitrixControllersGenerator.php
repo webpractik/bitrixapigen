@@ -97,7 +97,10 @@ class BitrixControllersGenerator implements GeneratorInterface
             $controllerClassName = ucfirst($key) . $this->getSuffix();
             $controllerFullPath = $controllerDirPath . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
             $client = $this->createResourceClass($schema, $controllerClassName);
-            $useStmts = [];
+            $useStmts = [
+                new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\Exception\BitrixFormatException'))]),
+                new Stmt\Use_([new Stmt\UseUse(new Name('Throwable'))]),
+            ];
             $useStmts[] = $client;
 
             $existClassAst = null;
