@@ -22,6 +22,9 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
+use PhpParser\Node\Stmt\Catch_;
+use PhpParser\Node\Stmt;
+use PhpParser\Node\Expr\Throw_;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
@@ -127,9 +130,34 @@ class ControllerBoilerplateSchema
         );
 
         if ($operationWrapped->isBitrixFormat()) {
-            $stmts[] = new Return_(
+            $tryBlock = $stmts;
+
+            $tryBlock[] = new Return_(
                 $useCaseCallMethod
             );
+
+            $catchStmt = new Catch_(
+                [new Name('Throwable')],
+                new Variable('e'),
+                [
+                    new Expression(
+                        new Throw_(
+                            new StaticCall(
+                                new Name('BitrixFormatException'),
+                                'from',
+                                [new Arg(new Variable('e'))]
+                            )
+                        )
+                    )
+                ]
+            );
+
+            $stmts = [
+                new Stmt\TryCatch(
+                    $tryBlock,
+                    [$catchStmt]
+                )
+            ];
         } else {
             $stmts[] = new Return_(
                 new New_(

@@ -19,20 +19,50 @@ class AbstractControllerBoilerplateSchema
 namespace $namespace;
 
 use Bitrix\Main\Engine\Controller;
+use Bitrix\Main\Response;
 use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
 use Webpractik\Bitrixgen\Dto\AbstractDto;
 use Webpractik\Bitrixgen\Dto\Collection\AbstractCollection;
 use DateTime;
+use Throwable;
+use Webpractik\Bitrixgen\Exception\BitrixFormatException;
+use Webpractik\Bitrixgen\Response\JsonResponse;
+use Bitrix\Main\Engine\Response\AjaxJson;
 
 class $className extends Controller
 {
     protected const RECURSION_DEPTH_LIMIT = 20;
     
+    protected ?Throwable \$lastException = null;
+    
     protected function getDefaultPreFilters(): array
     {
         return [];
+    }
+
+    public function finalizeResponse(Response \$response): void
+    {
+        if (!(\$response instanceof AjaxJson)) {
+            return;
+        }
+    
+        if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
+            return;
+        }
+    
+        \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
+        \$response->copyHeadersTo(\$errorJsonResponse);
+        \$response->setStatus(\$errorJsonResponse->getStatus());
+        \$response->setContent(\$errorJsonResponse->getContent());
+    }
+    
+    protected function runProcessingThrowable(Throwable \$throwable)
+    {
+        \$this->lastException = \$throwable;
+    
+        parent::runProcessingThrowable(\$throwable);
     }
 
     protected function initializeDtoCollection(AbstractCollection \$collection, array \$data, int \$depth = 0): void

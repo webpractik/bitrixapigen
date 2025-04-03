@@ -50,6 +50,8 @@ class BitrixControllersGenerator implements GeneratorInterface
         $controllersNamespace = $schema->getNamespace() . '\\Controllers';
         $controllerDirPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Controllers';
 
+        $schema->addFile(JsonResponseBoilerplateSchema::generate($schema->getDirectory() . \DIRECTORY_SEPARATOR . 'Response'));
+
         foreach ($schema->getOperations() as $operation) {
             if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
                 $sortedByTags[$operation->getOperation()->getTags()[0]] = [];
@@ -95,7 +97,10 @@ class BitrixControllersGenerator implements GeneratorInterface
             $controllerClassName = ucfirst($key) . $this->getSuffix();
             $controllerFullPath = $controllerDirPath . \DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
             $client = $this->createResourceClass($schema, $controllerClassName);
-            $useStmts = [];
+            $useStmts = [
+                new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\Exception\BitrixFormatException'))]),
+                new Stmt\Use_([new Stmt\UseUse(new Name('Throwable'))]),
+            ];
             $useStmts[] = $client;
 
             $existClassAst = null;
