@@ -31,7 +31,7 @@ use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 class ControllerBoilerplateSchema
 {
 
-    public static function getBoilerplateForProcessWithDtoBody(OperationGuess $operation, string $name, array $methodParams, bool $isOctetStreamFile): ClassMethod
+    public static function getBoilerplateForProcessWithDtoBody(OperationGuess $operation, string $name, array $methodParams, array $returnTypes, bool $isOctetStreamFile): ClassMethod
     {
         $operationWrapped = (new OperationWrapper($operation));
         $stmts = [];
@@ -129,12 +129,21 @@ class ControllerBoilerplateSchema
             $args
         );
 
+        $isNeedReturnData = count($returnTypes) > 1 || reset($returnTypes) !== 'null';
+
         if ($operationWrapped->isBitrixFormat()) {
             $tryBlock = $stmts;
 
-            $tryBlock[] = new Return_(
-                $useCaseCallMethod
-            );
+            if ($isNeedReturnData) {
+                $tryBlock[] = new Return_(
+                    $useCaseCallMethod
+                );
+            } else {
+                $tryBlock[] = new Expression(
+                    $useCaseCallMethod
+                );
+            }
+
 
             $catchStmt = new Catch_(
                 [new Name('Throwable')],
@@ -159,16 +168,22 @@ class ControllerBoilerplateSchema
                 )
             ];
         } else {
-            $stmts[] = new Return_(
-                new New_(
-                    new FullyQualified("Bitrix\Main\Engine\Response\Json"),
-                    [
-                        new Arg(
-                            $useCaseCallMethod
-                        )
-                    ]
-                )
-            );
+            if ($isNeedReturnData) {
+                $stmts[] = new Return_(
+                    new New_(
+                        new FullyQualified("Bitrix\Main\Engine\Response\Json"),
+                        [
+                            new Arg(
+                                $useCaseCallMethod
+                            )
+                        ]
+                    )
+                );
+            } else {
+                $stmts[] = new Expression(
+                    $useCaseCallMethod
+                );
+            }
         }
 
 
