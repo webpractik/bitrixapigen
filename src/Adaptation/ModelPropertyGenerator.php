@@ -26,7 +26,7 @@ trait ModelPropertyGenerator
 
     protected function createProperty(Property $property, string $namespace, $default = null, bool $strict = true): Stmt
     {
-        $propertyName = $property->getPhpName();
+        $propertyName = $property->getName();
         $propertyStmt = new Stmt\PropertyProperty($propertyName);
 
         if (null === $default) {
