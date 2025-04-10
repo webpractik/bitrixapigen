@@ -9,20 +9,13 @@ use Jane\Component\JsonSchema\Registry\Schema;
 use Jane\Component\OpenApi3\Generator\Client\ServerPluginGenerator;
 use Jane\Component\OpenApiCommon\Generator\Client\HttpClientCreateGenerator;
 use Jane\Component\OpenApiCommon\Naming\OperationNamingInterface;
-use PhpParser\Error;
-use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Scalar;
 use PhpParser\Node\Stmt\Nop;
-use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\Expr;
-use PhpParser\NodeDumper;
-use PhpParser\PrettyPrinter;
-use PhpParser\ParserFactory;
 use Webpractik\Bitrixapigen\Adaptation\OperationGenerator;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
@@ -103,18 +96,6 @@ class BitrixControllersGenerator implements GeneratorInterface
             ];
             $useStmts[] = $client;
 
-            $existClassAst = null;
-            if (file_exists($controllerFullPath)) {
-                $parser = (new ParserFactory())->createForNewestSupportedVersion();
-                try {
-                    $existClassAst = $parser->parse(file_get_contents($controllerFullPath));
-                } catch (Error $error) {
-                    echo "Parse error: {$error->getMessage()}\n";
-                    return;
-                }
-            }
-
-
             /** TODO здесь лежат операции */
             foreach ($value as $operation) {
                 $settingsGlobalFile[] = BoilerplateSchema::getFirstOpIfForSettings($this->operationNaming->getFunctionName($operation));
@@ -140,9 +121,7 @@ class BitrixControllersGenerator implements GeneratorInterface
                 $dPath = $schema->getDirectory() . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . "lib" . \DIRECTORY_SEPARATOR . "UseCase" . \DIRECTORY_SEPARATOR . ucfirst($this->operationNaming->getFunctionName($operation)) . '.php';;
                 $schema->addFile(UseCaseBoilerplateSchema::getUseCaseBoilerplate($operation, $dPath, $dName, $operationName, $methodParams, $returnTypes, $isOctetStreamFile));
             }
-            if ($existClassAst !== null) {
-                Treasurer::analyze($existClassAst, $useStmts);
-            }
+
             $node = new Stmt\Namespace_(new Name($controllersNamespace), $useStmts);
             $schema->addFile(new File(
                 $controllerFullPath,

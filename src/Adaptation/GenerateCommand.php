@@ -31,14 +31,19 @@ class GenerateCommand extends BaseGenerateCommand
     {
         $this->setName('generate');
         $this->setDescription('Generate an api client: class, normalizers and resources given a specific Json OpenApi file');
-        $this->addOption('openapi-file', 'o', InputOption::VALUE_REQUIRED, 'File with OpenAPI contract', dirname(__DIR__, 2) . '/openapi.json');
+        $this->addOption('openapi-file', 'o', InputOption::VALUE_REQUIRED, 'File with OpenAPI contract');
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
+        $openApiFile = $input->getOption('openapi-file');
+        if (empty($openApiFile)) {
+            $output->writeln('<error>Параметр --openapi-file обязателен.</error>');
+            return self::FAILURE;
+        }
+
         $configFile = dirname(__DIR__, 2) . '/.jane-openapi';
         $options = $this->configLoader->load($configFile);
-        $openApiFile = $input->getOption('openapi-file');
         $options['openapi-file'] = $openApiFile;
         $registries = $this->registries($options);
 

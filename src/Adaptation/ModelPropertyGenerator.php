@@ -36,7 +36,7 @@ trait ModelPropertyGenerator
         if ((null !== $default && \is_scalar($default)) || (Type::TYPE_ARRAY === $property->getType()->getTypeHint($namespace)?->toString() && \is_array($default))) {
             $propertyStmt->default = $this->getDefaultAsExpr($default)->expr;
         }
-        $type = $this->getPropertyType($property, $namespace);
+        $type = $this->getPropertyType($property, $namespace, $strict);
         return new Stmt\Property(Modifiers::PUBLIC, [
             $propertyStmt,
         ], [
@@ -90,7 +90,7 @@ EOD
         return $this->parser->parse('<?php ' . var_export($value, true) . ';')[0];
     }
 
-    protected function getPropertyType(Property $property, string $namespace): null|Identifier|Name
+    protected function getPropertyType(Property $property, string $namespace, bool $strict): null|Identifier|Name
     {
         $phpType = $property->getType()->getTypeHint($namespace)?->toString();
 
@@ -99,9 +99,12 @@ EOD
         }
 
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
+
+        $canBeNull = (!$strict || $property->isNullable()) && (strpos($docTypeHint, 'null') === false);
+
         if ($phpType === 'array' && str_contains($docTypeHint, '\\Model\\') && preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
             $className = $matches[1];
-            $collectionClass = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
+            $collectionClass = ($canBeNull ? '?' : '') .'\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
             return new Name($collectionClass);
         }
 
@@ -109,17 +112,17 @@ EOD
         $scalarTypes = ['string', 'int', 'float', 'bool', 'array'];
 
         if (in_array($phpType, $scalarTypes, true)) {
-            return new Identifier($phpType); // ✅ Возвращаем Identifier для скаляров
+            return new Identifier(($canBeNull ? '?' : '') .$phpType); // ✅ Возвращаем Identifier для скаляров
         }
 
         // Если это объект (например, \DateTime)
         if ($phpType === '\DateTime') {
-            return new Name($phpType);
+            return new Name(($canBeNull ? '?' : '') .$phpType);
         }
 
         $phpType = str_replace('\\Model\\', '\\Dto\\', $phpType);
 
         // Если это кастомный объект (например, Dto\Pet)
-        return new Name($phpType);
+        return new Name(($canBeNull ? '?' : '') .$phpType);
     }
 }

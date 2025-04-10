@@ -61,6 +61,7 @@ class OperationGenerator
             $operation,
             $name,
             $methodParams,
+            $returnTypes,
             $isOctetStreamFile
         );
     }
