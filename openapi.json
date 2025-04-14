@@ -500,6 +500,41 @@
         ]
       }
     },
+    "/pet/formWithFiles": {
+      "post": {
+        "tags": [
+          "pet"
+        ],
+        "summary": "Upload pet data via multipart form",
+        "description": "Accepts pet fields along with files",
+        "operationId": "uploadPetFormWithFiles",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PetFormUpload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pet uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
     "/store/inventory": {
       "get": {
         "tags": [
@@ -1159,6 +1194,50 @@
         "xml": {
           "name": "pet"
         }
+      },
+      "PetFormUpload": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/Category"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "pending",
+              "sold"
+            ]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "additionalPhoto": {
+            "type": "string",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "name",
+          "photos"
+        ]
       },
       "ApiResponse": {
         "type": "object",
