@@ -24,7 +24,7 @@ use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
 use Webpractik\Bitrixgen\Dto\AbstractDto;
-use Webpractik\Bitrixgen\Dto\Collection\AbstractCollection;
+use Webpractik\Bitrixgen\Dto\Collection\AbstractDtoCollection;
 use DateTime;
 use Throwable;
 use Webpractik\Bitrixgen\Exception\BitrixFormatException;
@@ -65,7 +65,7 @@ class $className extends Controller
         parent::runProcessingThrowable(\$throwable);
     }
 
-    protected function initializeDtoCollection(AbstractCollection \$collection, array \$data, int \$depth = 0): void
+    protected function initializeDtoCollection(AbstractDtoCollection \$collection, array \$data, int \$depth = 0): void
     {
         \$this->checkRecursionLimit(\$depth);
 
@@ -114,7 +114,7 @@ class $className extends Controller
 
     protected function isCollection(string \$typeName): bool
     {
-        return is_subclass_of(\$typeName, AbstractCollection::class);
+        return is_subclass_of(\$typeName, AbstractDtoCollection::class);
     }
 
     private function checkRecursionLimit(int \$depth): void
