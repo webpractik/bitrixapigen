@@ -23,6 +23,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Stmt\Use_;
+use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
 use const DIRECTORY_SEPARATOR;
 
 class ModelGenerator extends BaseModelGenerator
@@ -48,6 +49,7 @@ class ModelGenerator extends BaseModelGenerator
         $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
         $collectionDirPath = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
         $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
+        $schema->addFile(AbstractDtoCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractDtoCollection'));
 
         foreach ($schema->getClasses() as $class) {
             $properties = [];
@@ -141,7 +143,7 @@ EOD
         ]);
 
         $classNode = new Class_($collectionClassName, [
-            'extends' => new Name('AbstractCollection'),
+            'extends' => new Name('AbstractDtoCollection'),
             'stmts' => [$getItemTypeMethod]
         ]);
 

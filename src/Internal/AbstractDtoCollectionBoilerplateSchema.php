@@ -7,9 +7,9 @@ use PhpParser\ParserFactory;
 use const DIRECTORY_SEPARATOR;
 
 /**
- * Generate AbstractCollection file
+ * Generate AbstractDtoCollection file
  */
-class AbstractCollectionBoilerplateSchema
+class AbstractDtoCollectionBoilerplateSchema
 {
     public static function generate(string $path, string $namespace, string $className): File
     {
@@ -25,40 +25,22 @@ use JsonSerializable;
 use Webpractik\\Bitrixgen\\Dto\\AbstractDto;
 use InvalidArgumentException;
 
-abstract class $className implements JsonSerializable, IteratorAggregate, Countable
+abstract class $className extends AbstractCollection
 {
-    protected array \$items = [];
+    abstract public function getItemType(): string;
 
-    public function getItems(): array
+    public function add(AbstractDto \$item): void
     {
-        return \$this->items;
-    }
-
-    public function isEmpty(): bool
-    {
-        return empty(\$this->items);
-    }
-
-    public function count(): int
-    {
-        return count(\$this->items);
-    }
-
-    public function remove(int \$index): void
-    {
-        if (isset(\$this->items[\$index])) {
-            unset(\$this->items[\$index]);
+        \$itemType = \$this->getItemType();
+        if (!(\$item instanceof \$itemType)) {
+            throw new InvalidArgumentException('Неверный тип объекта. Ожидался: ' . \$this->getItemType());
         }
+        \$this->items[] = \$item;
     }
 
-    public function jsonSerialize(): array
+    public function get(int \$index): ?AbstractDto
     {
-        return \$this->items;
-    }
-
-    public function getIterator(): ArrayIterator
-    {
-        return new ArrayIterator(\$this->items);
+        return \$this->items[\$index] ?? null;
     }
 }
 PHP;
