@@ -5,6 +5,7 @@ namespace Webpractik\Bitrixapigen\Internal;
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
 use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
@@ -38,6 +39,9 @@ class ControllerBoilerplateSchema
         $args = [];
         $params = [];
 
+        $stmtsGetData = [];
+
+
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
 
@@ -45,12 +49,39 @@ class ControllerBoilerplateSchema
                 continue;
             }
 
+            //read data
+            if ($operationWrapped->isMultipartFormData() && $m->var->name === 'requestBody') {
+                $stmtsGetData = array_merge($stmtsGetData, self::getDataFromRequestBodyMultipart());
+            } elseif ($operationWrapped->isApplicationJson() && $m->var->name === 'requestBody') {
+                $stmtsGetData = array_merge($stmtsGetData, self::getDataFromRequestBodyJson());
+            } elseif ($m->var->name === 'queryParameters') {
+                $args[] = new Arg(
+                    new Variable($m->var->name)
+                );
+                $stmtsGetData[] = self::getQueryParamsResolver();
+            } else {
+                $args[] = new Arg(
+                    new Variable($m->var->name)
+                );
+                $params[] = new Param(
+                    var: new Variable($m->var->name),
+                    type: new Identifier($typeName)
+                );
+            }
+
+
             if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                 $args[] = new Arg(
                     new Variable('dto')
                 );
                 $dtoTypeName = str_replace('?', '', $typeName);
-                $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1));
+                $stmts = array_merge($stmts, self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1)));
+
+                if($operationWrapped->isMultipartFormData()) {
+                    $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
+                } else {
+                    $stmtsGetData = array_merge($stmtsGetData, self::getFilesAsEmptyArray());
+                }
                 continue;
             }
 
@@ -63,37 +94,32 @@ class ControllerBoilerplateSchema
                     );
                     $dtoNameResolver = DtoNameResolver::createByFullDtoClassName($arElementType);
                     $collectionClassName = new Name($dtoNameResolver->getFullCollectionClassName());
-                    $stmts = self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1));
-                } else {
-                    $args[] = new Arg(
-                        new Variable($m->var->name)
-                    );
-                    $stmts[] = self::getQueryParamsResolver();
+                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1)));
+
+                    if($operationWrapped->isMultipartFormData()) {
+                        $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
+                    } else {
+                        $stmtsGetData = array_merge($stmtsGetData, self::getFilesAsEmptyArray());
+                    }
                 }
                 continue;
             }
-
-            $args[] = new Arg(
-                new Variable($m->var->name)
-            );
-            $params[] = new Param(
-                var: new Variable($m->var->name),
-                type: new Identifier($typeName)
-            );
         }
 
         if ($isOctetStreamFile) {
             $args[] = new Arg(
                 new Variable('octetStreamRawContent')
             );
+
             $stmts[] = new Expression(
                 new Assign(
-                    new Variable('octetStreamRawContent'),
-                    new FuncCall(
-                        new Name('file_get_contents'),
-                        [
-                            new Arg(new String_('php://input'))
-                        ]
+                    new Variable("octetStreamRawContent"),
+                    new StaticCall(
+                        new MethodCall(
+                            new Variable("this"),
+                            new Identifier("getRequest")
+                        ),
+                        new Identifier("getInput")
                     )
                 )
             );
@@ -128,6 +154,8 @@ class ControllerBoilerplateSchema
             new Identifier('process'),
             $args
         );
+
+        $stmts = array_merge($stmtsGetData, $stmts);
 
         if ($operationWrapped->isBitrixFormat()) {
             $tryBlock = $stmts;
@@ -182,7 +210,7 @@ class ControllerBoilerplateSchema
         );
     }
 
-    public static function getDtoResolver($stmts, $dtoPath)
+    public static function getDataFromRequestBodyJson(): array
     {
         $stmts[] = new Expression(
             new Assign(
@@ -223,6 +251,75 @@ class ControllerBoilerplateSchema
             ]
         );
 
+        return $stmts;
+    }
+
+    public static function getFilesFromMultipart(): array
+    {
+        $stmts = [];
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('files'),
+                new MethodCall(
+                    new MethodCall(
+                        new MethodCall(new Variable('this'), 'getRequest'),
+                        'getFileList'
+                    ),
+                    'getValues'
+                )
+            )
+        );
+
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('normalizedFiles'),
+                new MethodCall(
+                    new New_(new Name('\Webpractik\Bitrixgen\Http\Normalizer\BitrixFileNormalizer')),
+                    'normalize',
+                    [
+                        new Arg(new Variable('files'))
+                    ]
+                )
+            )
+        );
+
+        return $stmts;
+    }
+
+    public static function getFilesAsEmptyArray(): array
+    {
+        $stmts = [];
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('normalizedFiles'),
+                new Array_([])
+            )
+        );
+
+        return $stmts;
+    }
+
+    public static function getDataFromRequestBodyMultipart(): array
+    {
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('requestBody'),
+                new MethodCall(
+                    new MethodCall(
+                        new MethodCall(new Variable('this'), 'getRequest'),
+                        'getPostList'
+                    ),
+                    'getValues'
+                )
+            )
+        );
+
+
+        return $stmts;
+    }
+
+    public static function getDtoResolver($stmts, $dtoPath)
+    {
         $stmts[] = new Expression(
             new Assign(
                 new Variable("dto"),
@@ -238,6 +335,7 @@ class ControllerBoilerplateSchema
                 [
                     new Variable('dto'),
                     new Variable('requestBody'),
+                    new Variable('normalizedFiles'),
                 ]
             )
         );
@@ -247,45 +345,6 @@ class ControllerBoilerplateSchema
 
     public static function getDtoCollectionResolver($stmts, $collectionClassName)
     {
-        $stmts[] = new Expression(
-            new Assign(
-                new Variable("requestBody"),
-                new StaticCall(
-                    new MethodCall(
-                        new Variable("this"),
-                        new Identifier("getRequest")
-                    ),
-                    new Identifier("getInput")
-                )
-            )
-        );
-
-        $stmts[] = new If_(
-            new MethodCall(
-                new Variable('this->getRequest()'),
-                new Identifier('isJson'),
-                []
-            ),
-            [
-                'stmts' => [
-                    new Expression(
-                        new Assign(
-                            new Variable('requestBody'),
-                            new FuncCall(
-                                new FullyQualified('json_decode'),
-                                [
-                                    new Arg(new Variable('requestBody')),
-                                    new Arg(new ConstFetch(new Name('true'))),
-                                    new Arg(new LNumber(512)),
-                                    new Arg(new ConstFetch(new Name('JSON_THROW_ON_ERROR')))
-                                ]
-                            )
-                        )
-                    )
-                ]
-            ]
-        );
-
         $stmts[] = new Expression(
             new Assign(
                 new Variable("collection"),
@@ -301,6 +360,7 @@ class ControllerBoilerplateSchema
                 [
                     new Variable('collection'),
                     new Variable('requestBody'),
+                    new Variable('normalizedFiles'),
                 ]
             )
         );
@@ -315,10 +375,13 @@ class ControllerBoilerplateSchema
                 new Variable("queryParameters"),
                 new MethodCall(
                     new MethodCall(
-                        new Variable("this"),
-                        new Identifier("getRequest")
+                        new MethodCall(
+                            new Variable("this"),
+                            new Identifier("getRequest")
+                        ),
+                        new Identifier("getQueryList")
                     ),
-                    new Identifier("getValues")
+                    'getValues'
                 )
             )
         );

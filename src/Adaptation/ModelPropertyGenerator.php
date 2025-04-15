@@ -5,6 +5,7 @@ namespace Webpractik\Bitrixapigen\Adaptation;
 use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
 use Jane\Component\JsonSchema\Guesser\Guess\Type;
+use Jane\Component\OpenApi3\JsonSchema\Model\Schema;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node\Identifier;
@@ -48,7 +49,15 @@ trait ModelPropertyGenerator
     protected function createPropertyDoc(Property $property, $namespace, bool $strict): Doc
     {
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
-        if (str_contains($docTypeHint, '\\Model\\')) {
+
+        if (($property->getObject() instanceof Schema) &&
+            $property->getObject()->getType() === 'array'
+            && $property->getObject()->getItems() instanceof Schema
+            && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
+            $docTypeHint = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\Files\\UploadedFileCollection';
+        } elseif ($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
+            $docTypeHint = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $docTypeHint);
+        } elseif (str_contains($docTypeHint, '\\Model\\')) {
             $docTypeHint = str_replace('\\Model\\', '\\Dto\\', $docTypeHint);
             if (preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Dto\\\\([^>]+)>$#', $docTypeHint, $matches)) {
                 $className = $matches[1];
@@ -96,6 +105,34 @@ EOD
 
         if ($phpType === null) {
             return null; // Если нет типа, оставляем без него
+        }
+
+        if($property->getName() === 'photos') {
+//            echo '<pre>';
+//            var_export([
+//                $property->getObject()->getType(),
+//                $property->getObject()->getItems()->getType(),
+//                $property->getObject()->getItems()->getFormat()
+//            ]);
+//            echo '</pre>'; die();
+        }
+
+        if(($property->getObject() instanceof Schema) &&
+        $property->getObject()->getType() === 'array'
+            && $property->getObject()->getItems() instanceof Schema
+            && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
+            $phpType = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\Files\\UploadedFileCollection';
+            return new Name($phpType);
+        }
+
+        if($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
+            $phpType = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $phpType);
+            return new Name($phpType);
+//            echo '<pre>';
+//            var_export($propertyName);
+//            var_export([$propertyName, $property->getObject()->getType12(), $property->getObject()->getFormat()]);
+//            echo '</pre>';
+//            die();
         }
 
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);

@@ -500,7 +500,7 @@
         ]
       }
     },
-    "/pet/formWithFiles": {
+    "/pet/{petId}/formWithFiles": {
       "post": {
         "tags": [
           "pet"
@@ -508,6 +508,18 @@
         "summary": "Upload pet data via multipart form",
         "description": "Accepts pet fields along with files",
         "operationId": "uploadPetFormWithFiles",
+        "parameters": [
+          {
+            "name": "petStatus",
+            "in": "query",
+            "description": "pet status",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
