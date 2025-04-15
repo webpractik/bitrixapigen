@@ -23,6 +23,9 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Stmt\Use_;
+use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\BitrixFileNormalizerBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\UploadedFileCollectionBoilerplateSchema;
 use const DIRECTORY_SEPARATOR;
 
 class ModelGenerator extends BaseModelGenerator
@@ -48,6 +51,13 @@ class ModelGenerator extends BaseModelGenerator
         $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
         $collectionDirPath = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
         $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
+        $schema->addFile(AbstractDtoCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractDtoCollection'));
+        $schema->addFile(UploadedFileCollectionBoilerplateSchema::generate($collectionDirPath . DIRECTORY_SEPARATOR . 'Files', $collectionNamespace . '\\Files', 'UploadedFileCollection'));
+        $schema->addFile(BitrixFileNormalizerBoilerplateSchema::generate(
+            $schema->getDirectory() . DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR .'Normalizer',
+            $schema->getNamespace() . '\\Http\Normalizer',
+            'BitrixFileNormalizer'
+        ));
 
         foreach ($schema->getClasses() as $class) {
             $properties = [];
@@ -141,7 +151,7 @@ EOD
         ]);
 
         $classNode = new Class_($collectionClassName, [
-            'extends' => new Name('AbstractCollection'),
+            'extends' => new Name('AbstractDtoCollection'),
             'stmts' => [$getItemTypeMethod]
         ]);
 

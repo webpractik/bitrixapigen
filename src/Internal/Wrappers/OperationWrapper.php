@@ -43,6 +43,32 @@ class OperationWrapper
         return false;
     }
 
+    public function isMultipartFormData(): bool
+    {
+        $requestBody = $this->operation->getOperation()->getRequestBody();
+        if (!$requestBody || !$requestBody->getContent()) {
+            return false;
+        }
+        foreach ($requestBody->getContent() as $contentType => $mediaType) {
+            return $contentType === 'multipart/form-data';
+        }
+
+        return false;
+    }
+
+    public function isApplicationJson(): bool
+    {
+        $requestBody = $this->operation->getOperation()->getRequestBody();
+        if (!$requestBody || !$requestBody->getContent()) {
+            return false;
+        }
+        foreach ($requestBody->getContent() as $contentType => $mediaType) {
+            return $contentType === 'application/json';
+        }
+
+        return false;
+    }
+
     /**
      * Получаем тип элементов массива, если в requestBody тип параметра - массив
      * @return string|null
