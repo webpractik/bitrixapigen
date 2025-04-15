@@ -93,6 +93,20 @@ class OperationGenerator
             if ($m->var->name === 'accept' || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
                 continue;
             }
+
+            if ($m->var->name === 'queryParameters') {
+                $params[] = new Param(
+                    new Variable('queryParameters'),
+                    null,
+                    new Identifier('array')
+                );
+            } elseif($m->var->name !== 'requestBody') {
+                $params[] = new Param(
+                    var: new Variable($m->var->name),
+                    type: new Identifier($typeName)
+                );
+            }
+
                 if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Expr\Variable($m->var->name),
@@ -114,12 +128,6 @@ class OperationGenerator
                 }
                 continue;
             }
-
-                    $params[] = new Param(
-                        new Expr\Variable($m->var->name),
-                        null,
-                        new Identifier($m->type?->name)
-                    );
         }
 
         $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();

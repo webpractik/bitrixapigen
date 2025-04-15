@@ -211,6 +211,13 @@ class ControllerBoilerplateSchema
                 $stmts[] = new Expression(
                     $useCaseCallMethod
                 );
+
+                $stmts[] = new Return_(
+                    new New_(
+                        new FullyQualified("Bitrix\Main\HttpResponse"),
+                        []
+                    )
+                );
             }
         }
 
