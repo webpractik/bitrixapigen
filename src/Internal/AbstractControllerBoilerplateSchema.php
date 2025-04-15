@@ -20,6 +20,7 @@ namespace $namespace;
 
 use Bitrix\Main\Engine\Controller;
 use Bitrix\Main\Response;
+use Psr\Http\Message\UploadedFileInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
@@ -27,6 +28,7 @@ use Webpractik\Bitrixgen\Dto\AbstractDto;
 use Webpractik\Bitrixgen\Dto\Collection\AbstractDtoCollection;
 use DateTime;
 use Throwable;
+use Webpractik\Bitrixgen\Dto\Collection\Files\UploadedFileCollection;
 use Webpractik\Bitrixgen\Exception\BitrixFormatException;
 use Webpractik\Bitrixgen\Response\JsonResponse;
 use Bitrix\Main\Engine\Response\AjaxJson;
@@ -65,19 +67,19 @@ class $className extends Controller
         parent::runProcessingThrowable(\$throwable);
     }
 
-    protected function initializeDtoCollection(AbstractDtoCollection \$collection, array \$data, int \$depth = 0): void
+    protected function initializeDtoCollection(AbstractDtoCollection \$collection, array \$data, array \$files, int \$depth = 0): void
     {
         \$this->checkRecursionLimit(\$depth);
 
         foreach (\$data as \$item) {
             \$dtoObject = new (\$collection->getItemType())();
-            \$this->initializeDto(\$dtoObject, \$item);
+            \$this->initializeDto(\$dtoObject, \$item, \$files);
             \$collection->add(\$dtoObject);
         }
     }
 
     // Рекурсивная функция для обработки вложенных DTO и массивов DTO
-    protected function initializeDto(AbstractDto \$dto, array \$data, int \$depth = 0): void
+    protected function initializeDto(AbstractDto \$dto, array \$data, array \$files, int \$depth = 0): void
     {
         \$this->checkRecursionLimit(\$depth);
 
@@ -87,18 +89,22 @@ class $className extends Controller
         foreach (\$properties as \$property) {
             \$propertyName = \$property->getName();
 
-            if (array_key_exists(\$propertyName, \$data)) {
+            if (array_key_exists(\$propertyName, \$data) || array_key_exists(\$propertyName, \$files)) {
                 \$value = \$data[\$propertyName];
 
                 if (\$this->isCollection(\$property->getType()->getName())) {
                     \$collection = new (\$property->getType()->getName())();
-                    \$this->initializeDtoCollection(\$collection, \$value);
+                    \$this->initializeDtoCollection(\$collection, \$value, \$files, \$depth);
                     \$dto->{\$propertyName} = \$collection;
                 } elseif (\$this->isDto(\$property->getType()->getName())) {
                     \$dtoObject = new (\$property->getType()->getName())();
-                    \$this->initializeDto(\$dtoObject, \$value); // Рекурсивно инициализируем DTO
+                    \$this->initializeDto(\$dtoObject, \$value, \$files, \$depth); // Рекурсивно инициализируем DTO
                     \$dto->{\$propertyName} = \$dtoObject;
-                 } elseif (\$property->getType()->getName() === 'DateTime') {
+                } elseif(is_a(\$property->getType()->getName(), UploadedFileCollection::class, true)) {
+                    \$dto->{\$propertyName} = \$files[\$propertyName] ?? null;
+                } elseif(is_a(\$property->getType()->getName(), UploadedFileInterface::class, true)) {
+                    \$dto->{\$propertyName} = \$files[\$propertyName] ?? null;
+                } elseif (\$property->getType()->getName() === 'DateTime') {
                     \$dto->{\$propertyName} = DateTime::createFromFormat(DATE_ATOM, \$value);
                 } else {
                     \$dto->{\$propertyName} = \$value;
