@@ -34,6 +34,20 @@ class UseCaseBoilerplateSchema
             if ($m->var->name === "accept" || $m->var->name === null || $typeName === '' || str_contains($m->var->name, 'headerParameters')) {
                 continue;
             }
+
+            if ($m->var->name === 'queryParameters') {
+                $params[] = new Param(
+                    new Variable('queryParameters'),
+                    null,
+                    new Identifier('array')
+                );
+            } elseif($m->var->name !== 'requestBody') {
+                $params[] = new Param(
+                    var: new Variable($m->var->name),
+                    type: new Identifier($typeName)
+                );
+            }
+
                 if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
                     $params[] = new Param(
                         new Variable($m->var->name),
@@ -55,12 +69,6 @@ class UseCaseBoilerplateSchema
                 }
                 continue;
             }
-
-                    $params[] = new Param(
-                        new Variable($m->var->name),
-                        null,
-                        new Identifier($m->type?->name)
-                    );
         }
 
         if ($isOctetStreamFile) {
