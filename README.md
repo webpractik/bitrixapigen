@@ -79,7 +79,7 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
 > 🟡 Параметр *--openapi-file* (или *-o*) — **обязателен**
 
 3. Установите модуль:
-    - через административную панель Bitrix (`/bitrix/admin/module_admin.php`)
+    - через административную панель Bitrix (`/bitrix/admin/partner_modules.php`)
     - или через миграцию/скрипт
 
 ---
