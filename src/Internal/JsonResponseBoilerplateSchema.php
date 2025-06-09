@@ -39,6 +39,11 @@ class $className extends Json
         return new self(['message' => \$message], \$status);
     }
 
+    public static function errorValidation(string \$message, array \$errors = []): self
+    {
+        return new self(['message' => \$message, 'errors' => \$errors], 422);
+    }
+
     public static function fromException(Throwable \$e): self
     {
         \$status = (\$e->getCode() >= 100 && \$e->getCode() <= 599)

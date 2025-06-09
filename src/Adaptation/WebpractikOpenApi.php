@@ -3,13 +3,13 @@
 namespace Webpractik\Bitrixapigen\Adaptation;
 
 use Jane\Component\JsonSchema\Generator\Naming;
+use Jane\Component\JsonSchema\Generator\RuntimeGenerator;
 use Jane\Component\JsonSchema\Generator\ValidatorGenerator;
 use Webpractik\Bitrixapigen\Adaptation\GeneratorFactory;
 use Jane\Component\OpenApi3\Guesser\OpenApiSchema\GuesserFactory;
 use Jane\Component\OpenApi3\SchemaParser\SchemaParser;
 use Jane\Component\OpenApi3\WhitelistedSchema;
 use Jane\Component\OpenApiCommon\Generator\NormalizerGenerator;
-use Jane\Component\OpenApiCommon\Generator\RuntimeGenerator;
 use Jane\Component\OpenApiCommon\JaneOpenApi as CommonJaneOpenApi;
 use PhpParser\ParserFactory;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -38,5 +38,9 @@ class WebpractikOpenApi extends CommonJaneOpenApi
 
         yield new ModelGenerator($naming, $parser);
         yield GeneratorFactory::build($denormalizer, $options['endpoint-generator'] ?: UseCaseGenerator::class);
+        yield new RuntimeGenerator($naming, $parser);
+        if ($options['validation'] ?? false) {
+            yield new ValidatorGenerator($naming);
+        }
     }
 }

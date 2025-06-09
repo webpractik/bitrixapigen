@@ -75,7 +75,10 @@ class ControllerBoilerplateSchema
                     new Variable('dto')
                 );
                 $dtoTypeName = str_replace('?', '', $typeName);
-                $stmts = array_merge($stmts, self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1)));
+
+                $stmts = self::getValidatorResolver($stmts, mb_substr(str_replace("Model", "Validator", $dtoTypeName . 'Constraint'), 1));
+
+                $stmts = self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1));
 
                 if($operationWrapped->isMultipartFormData()) {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -93,8 +96,11 @@ class ControllerBoilerplateSchema
                         new Variable('collection')
                     );
                     $dtoNameResolver = DtoNameResolver::createByFullDtoClassName($arElementType);
+
+                    $stmts = self::getValidatorResolver($stmts, mb_substr(str_replace('Dto', 'Validator', $dtoNameResolver->getFullDtoClassName() . 'CollectionConstraint'), 1));
+
                     $collectionClassName = new Name($dtoNameResolver->getFullCollectionClassName());
-                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1)));
+                    $stmts = self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1));
 
                     if($operationWrapped->isMultipartFormData()) {
                         $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -336,6 +342,30 @@ class ControllerBoilerplateSchema
             )
         );
 
+        return $stmts;
+    }
+
+    public static function getValidatorResolver($stmts, $constraintPath)
+    {
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable("constraint"),
+                new New_(
+                    new FullyQualified($constraintPath)
+                )
+            )
+        );
+        $stmts[] = new Expression(
+            new MethodCall(
+                new Variable('this'),
+                'validate',
+                [
+                    new Variable('requestBody'),
+                    new Variable('constraint'),
+
+                ]
+            )
+        );
 
         return $stmts;
     }

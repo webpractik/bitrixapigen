@@ -25,6 +25,7 @@ use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Stmt\Use_;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\BitrixFileNormalizerBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\CollectionConstraintBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\UploadedFileCollectionBoilerplateSchema;
 use const DIRECTORY_SEPARATOR;
 
@@ -50,6 +51,10 @@ class ModelGenerator extends BaseModelGenerator
 
         $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
         $collectionDirPath = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
+
+        $validatorNamespace = $schema->getNamespace() . '\\Validator';
+        $validatorDirPath =   $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
+
         $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
         $schema->addFile(AbstractDtoCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractDtoCollection'));
         $schema->addFile(UploadedFileCollectionBoilerplateSchema::generate($collectionDirPath . DIRECTORY_SEPARATOR . 'Files', $collectionNamespace . '\\Files', 'UploadedFileCollection'));
@@ -79,6 +84,8 @@ class ModelGenerator extends BaseModelGenerator
             $collectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
 
             $schema->addFile(new File($collectionPath, $collection, 'collection'));
+
+            $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName().'CollectionConstraint', $class->getName().'Constraint', $validatorDirPath));
         }
     }
 
