@@ -51,35 +51,39 @@ class $className extends Controller
 
     public function finalizeResponse(Response \$response): void
     {
-        if (!(\$response instanceof AjaxJson)) {
-            return;
-        }
-
-        if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
-            return;
-        }
-
-        if (\$this->lastException instanceof ValidationException) {
-            \$violations = \$this->lastException->getViolationList();
-
-            \$errors = [];
-
-            /** @var ConstraintViolationInterface \$violation */
-            foreach (\$violations as \$violation) {
-                \$errors[] = [
-                    'field' => \$violation->getPropertyPath(),
-                    'message' => \$violation->getMessage(),
-                ];
+        try {
+            if (!(\$response instanceof AjaxJson)) {
+                return;
             }
 
-            \$errorJsonResponse = JsonResponse::errorValidation('Валидация не пройдена', \$errors); // HTTP 422 Unprocessable Entity
-        } else {
-            \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
-        }
+            if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
+                return;
+            }
 
-        \$response->copyHeadersTo(\$errorJsonResponse);
-        \$response->setStatus(\$errorJsonResponse->getStatus());
-        \$response->setContent(\$errorJsonResponse->getContent());
+            if (\$this->lastException instanceof ValidationException) {
+                \$violations = \$this->lastException->getViolationList();
+
+                \$errors = [];
+
+                /** @var ConstraintViolationInterface \$violation */
+                foreach (\$violations as \$violation) {
+                    \$errors[] = [
+                        'field' => \$violation->getPropertyPath(),
+                        'message' => \$violation->getMessage(),
+                    ];
+                }
+
+                \$errorJsonResponse = JsonResponse::errorValidation('Валидация не пройдена', \$errors); // HTTP 422 Unprocessable Entity
+            } else {
+                \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
+            }
+
+            \$response->copyHeadersTo(\$errorJsonResponse);
+            \$response->setStatus(\$errorJsonResponse->getStatus());
+            \$response->setContent(\$errorJsonResponse->getContent());
+        } finally {
+            \$this->lastException = null;
+        }
     }
 
     protected function runProcessingThrowable(Throwable \$throwable)
