@@ -355,6 +355,20 @@ class ControllerBoilerplateSchema
                 )
             )
         );
+
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('locale'),
+                new MethodCall(
+                    new StaticCall(
+                        new Name('ModuleContext'),
+                        'get'
+                    ),
+                    'getLocale'
+                )
+            )
+        );
+
         $stmts[] = new Expression(
             new MethodCall(
                 new Variable('this'),
@@ -362,7 +376,7 @@ class ControllerBoilerplateSchema
                 [
                     new Variable('requestBody'),
                     new Variable('constraint'),
-
+                    new Variable('locale'),
                 ]
             )
         );

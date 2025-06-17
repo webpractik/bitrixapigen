@@ -34,7 +34,7 @@ use Webpractik\Bitrixgen\Exception\BitrixFormatException;
 use Webpractik\Bitrixgen\Response\JsonResponse;
 use Bitrix\Main\Engine\Response\AjaxJson;
 use Webpractik\Bitrixgen\Runtime\Normalizer\ValidationException;
-use Webpractik\Bitrixgen\Runtime\Normalizer\ValidatorTrait;
+use Webpractik\Bitrixgen\Validator\ValidatorTrait;
 
 class $className extends Controller
 {

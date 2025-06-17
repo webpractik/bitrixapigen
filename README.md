@@ -72,11 +72,13 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
 > 📝 Все данные передаваемые в телах запросов должны быть описаны через схемы (`schema`) в OpenAPI-спецификации. Именно на их основе происходит генерация соответствующих DTO, коллекций и корректная передача аргументов в UseCase.
 2. Выполните генерацию:
 
-*php vendor/bin/bitrixapigen generate --openapi-file path/to/openapi.yaml*  
+*php vendor/bin/bitrixapigen generate --openapi-file path/to/openapi.yaml --locale ru*  
 или кратко:  
-*php vendor/bin/bitrixapigen generate -o path/to/openapi.yaml*
+*php vendor/bin/bitrixapigen generate -o path/to/openapi.yaml -l ru*
 
 > 🟡 Параметр *--openapi-file* (или *-o*) — **обязателен**
+
+> 🟡 Параметр *--locale* (или *-l*) — язык для сообщений валидатора по стандату BCP 47 **не обязателен, по умолчанию будет ru**
 
 3. Установите модуль:
     - через административную панель Bitrix (`/bitrix/admin/partner_modules.php`)

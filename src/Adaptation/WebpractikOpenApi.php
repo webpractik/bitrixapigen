@@ -36,6 +36,8 @@ class WebpractikOpenApi extends CommonJaneOpenApi
         $naming = new Naming();
         $parser = (new ParserFactory())->createForHostVersion();
 
+        yield new ModuleContextGenerator(GenerationContext::get()->getLocale());
+        yield new ValidatorFactoryGenerator();
         yield new ModelGenerator($naming, $parser);
         yield GeneratorFactory::build($denormalizer, $options['endpoint-generator'] ?: UseCaseGenerator::class);
         yield new RuntimeGenerator($naming, $parser);

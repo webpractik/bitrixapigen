@@ -11,8 +11,6 @@
             "email": "pk@webpractik.ru"
         }
     ],
-    "require-dev": {
-    },
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
@@ -25,6 +23,7 @@
         "jane-php/open-api-runtime": "^7.8",
         "nikic/php-parser": "^5.3",
         "jane-php/open-api-3": "^7.8",
-        "nyholm/psr7": "^1.8"
+        "nyholm/psr7": "^1.8",
+        "symfony/translation": "^7.3"
     }
 }

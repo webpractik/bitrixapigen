@@ -32,6 +32,7 @@ class GenerateCommand extends BaseGenerateCommand
         $this->setName('generate');
         $this->setDescription('Generate an api client: class, normalizers and resources given a specific Json OpenApi file');
         $this->addOption('openapi-file', 'o', InputOption::VALUE_REQUIRED, 'File with OpenAPI contract');
+        $this->addOption('locale', 'l', InputOption::VALUE_OPTIONAL,  'Locale used for validation error messages, following the BCP 47 standard (e.g., "ru", "en"). Defaults to "ru" if not specified or unsupported.');
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
@@ -41,9 +42,13 @@ class GenerateCommand extends BaseGenerateCommand
             $output->writeln('<error>Параметр --openapi-file обязателен.</error>');
             return self::FAILURE;
         }
+        $locale = trim($input->getOption('locale') ?? '');
 
         $configFile = dirname(__DIR__, 2) . '/.jane-openapi';
         $options = $this->configLoader->load($configFile);
+
+        GenerationContext::init($locale !== '' ? $locale : 'ru');
+
         $options['openapi-file'] = $openApiFile;
         $registries = $this->registries($options);
 
