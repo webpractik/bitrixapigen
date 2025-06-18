@@ -6,7 +6,7 @@ use Jane\Component\JsonSchema\Generator\Context\Context;
 use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Generator\RuntimeGenerator;
 use Jane\Component\JsonSchema\Generator\ValidatorGenerator;
-use Jane\Component\JsonSchema\Guesser\Validator\ChainValidatorFactory;
+use Webpractik\Bitrixapigen\Adaptation\Guesser\Validator\ChainValidatorFactory;
 use Jane\Component\JsonSchema\Registry\Registry;
 use Jane\Component\OpenApiCommon\Registry\Schema;
 use Webpractik\Bitrixapigen\Adaptation\GeneratorFactory;
