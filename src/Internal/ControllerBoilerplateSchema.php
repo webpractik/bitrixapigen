@@ -96,8 +96,8 @@ class ControllerBoilerplateSchema
                         new Variable('collection')
                     );
                     $dtoNameResolver = DtoNameResolver::createByFullDtoClassName($arElementType);
-
-                    $stmts = self::getValidatorResolver($stmts, mb_substr(str_replace('Dto', 'Validator', $dtoNameResolver->getFullDtoClassName() . 'CollectionConstraint'), 1));
+                    $constraintClassName = 'Webpractik\Bitrixgen\Validator\\'.ucfirst($operation->getOperation()->getOperationId() . 'OperationConstraint');
+                    $stmts = self::getValidatorResolver($stmts,  $constraintClassName);
 
                     $collectionClassName = new Name($dtoNameResolver->getFullCollectionClassName());
                     $stmts = self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1));

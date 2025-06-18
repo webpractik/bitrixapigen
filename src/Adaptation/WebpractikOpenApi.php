@@ -6,6 +6,7 @@ use Jane\Component\JsonSchema\Generator\Context\Context;
 use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Generator\RuntimeGenerator;
 use Jane\Component\JsonSchema\Generator\ValidatorGenerator;
+use Webpractik\Bitrixapigen\Adaptation\Generator\OperationValidatorGenerator;
 use Webpractik\Bitrixapigen\Adaptation\Guesser\Validator\ChainValidatorFactory;
 use Jane\Component\JsonSchema\Registry\Registry;
 use Jane\Component\OpenApiCommon\Registry\Schema;
@@ -47,6 +48,7 @@ class WebpractikOpenApi extends CommonJaneOpenApi
         yield new RuntimeGenerator($naming, $parser);
         if ($options['validation'] ?? false) {
             yield new ValidatorGenerator($naming);
+            yield new OperationValidatorGenerator($naming);
         }
     }
 
