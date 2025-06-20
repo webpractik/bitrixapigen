@@ -258,7 +258,7 @@ EOD
         $class = null;
 
         if (null !== $classGuess) {
-            $class = $context->getRegistry()->getSchema($classGuess->getReference())->getNamespace() . '\\Dto\\' . $classGuess->getName();
+            $class = $context->getRegistry()->getSchema($classGuess->getReference())->getNamespace() . '\\Model\\' . $classGuess->getName();
 
             if ($array) {
                 $class .= '[]';

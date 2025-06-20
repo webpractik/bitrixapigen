@@ -75,7 +75,8 @@ class ControllerBoilerplateSchema
                     new Variable('dto')
                 );
                 $dtoTypeName = str_replace('?', '', $typeName);
-                $stmts = array_merge($stmts, self::getDtoResolver($stmts, mb_substr(str_replace("Model", "Dto", $dtoTypeName), 1)));
+                $dtoNameResolver = DtoNameResolver::createByFullModelName($dtoTypeName);
+                $stmts = array_merge($stmts, self::getDtoResolver($stmts, $dtoNameResolver->getFullDtoClassName()));
 
                 if($operationWrapped->isMultipartFormData()) {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -94,7 +95,7 @@ class ControllerBoilerplateSchema
                     );
                     $dtoNameResolver = DtoNameResolver::createByFullDtoClassName($arElementType);
                     $collectionClassName = new Name($dtoNameResolver->getFullCollectionClassName());
-                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, mb_substr($collectionClassName, 1)));
+                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, $collectionClassName));
 
                     if($operationWrapped->isMultipartFormData()) {
                         $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());

@@ -12,6 +12,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Parser;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 trait ModelPropertyGenerator
 {
@@ -54,15 +55,20 @@ trait ModelPropertyGenerator
             $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
-            $docTypeHint = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\Files\\UploadedFileCollection';
+            $docTypeHint = '\\'.DtoNameResolver::getDtoCollectionNamespace().'\\Files\\UploadedFileCollection';
         } elseif ($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
             $docTypeHint = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $docTypeHint);
         } elseif (str_contains($docTypeHint, '\\Model\\')) {
-            $docTypeHint = str_replace('\\Model\\', '\\Dto\\', $docTypeHint);
-            if (preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Dto\\\\([^>]+)>$#', $docTypeHint, $matches)) {
-                $className = $matches[1];
-                $collectionClassName = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
-                $docTypeHint = preg_replace('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Dto\\\\([^>]+)>$#', $collectionClassName, $docTypeHint);
+            if (preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
+                $modelName               = $matches[1];
+                $dtoNameResolver         = DtoNameResolver::createByModelName($modelName);
+                $collectionFullClassName = $dtoNameResolver->getFullCollectionClassName();
+                $docTypeHint             = preg_replace('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', '\\' . $collectionFullClassName, $docTypeHint);
+            } elseif (preg_match('#^\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)$#', $docTypeHint, $matches)) {
+                $modelName        = $matches[1];
+                $dtoNameResolver  = DtoNameResolver::createByModelName($modelName);
+                $dtoFullClassName = $dtoNameResolver->getFullDtoClassName();
+                $docTypeHint      = preg_replace('#^\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)$#', '\\' . $dtoFullClassName, $docTypeHint);
             }
         }
         if ((!$strict || $property->isNullable()) && strpos($docTypeHint, 'null') === false) {
@@ -107,43 +113,23 @@ EOD
             return null; // Если нет типа, оставляем без него
         }
 
-        if($property->getName() === 'photos') {
-//            echo '<pre>';
-//            var_export([
-//                $property->getObject()->getType(),
-//                $property->getObject()->getItems()->getType(),
-//                $property->getObject()->getItems()->getFormat()
-//            ]);
-//            echo '</pre>'; die();
-        }
-
         if(($property->getObject() instanceof Schema) &&
         $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
-            $phpType = '\\Webpractik\\Bitrixgen\\Dto\\Collection\\Files\\UploadedFileCollection';
+            $phpType = '\\' . DtoNameResolver::getDtoCollectionNamespace() . '\\Files\\UploadedFileCollection';
             return new Name($phpType);
         }
 
         if($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
             $phpType = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $phpType);
             return new Name($phpType);
-//            echo '<pre>';
-//            var_export($propertyName);
-//            var_export([$propertyName, $property->getObject()->getType12(), $property->getObject()->getFormat()]);
-//            echo '</pre>';
-//            die();
         }
 
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
 
         $canBeNull = (!$strict || $property->isNullable()) && (strpos($docTypeHint, 'null') === false);
 
-        if ($phpType === 'array' && str_contains($docTypeHint, '\\Model\\') && preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
-            $className = $matches[1];
-            $collectionClass = ($canBeNull ? '?' : '') .'\\Webpractik\\Bitrixgen\\Dto\\Collection\\'.$className . 'Collection';
-            return new Name($collectionClass);
-        }
 
         // Простые скалярные типы
         $scalarTypes = ['string', 'int', 'float', 'bool', 'array'];
@@ -157,7 +143,18 @@ EOD
             return new Name(($canBeNull ? '?' : '') .$phpType);
         }
 
-        $phpType = str_replace('\\Model\\', '\\Dto\\', $phpType);
+        if ($phpType === 'array' && str_contains($docTypeHint, '\\Model\\') && preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
+            $className       = $matches[1];
+            $collectionClass = ($canBeNull ? '?' : '') . '\\Webpractik\\Bitrixgen\\Dto\\Collection\\' . $className . 'Collection';
+
+            return new Name($collectionClass);
+        }
+
+        if (preg_match('#^\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)$#', $phpType, $matches)) {
+            $modelName       = $matches[1];
+            $dtoNameResolver = DtoNameResolver::createByModelName($modelName);
+            $phpType         = '\\' . $dtoNameResolver->getFullDtoClassName();
+        }
 
         // Если это кастомный объект (например, Dto\Pet)
         return new Name(($canBeNull ? '?' : '') .$phpType);

@@ -21,6 +21,7 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\UnionType;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class UseCaseBoilerplateSchema
@@ -48,21 +49,23 @@ class UseCaseBoilerplateSchema
                 );
             }
 
-                if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
-                    $params[] = new Param(
-                        new Variable($m->var->name),
-                        null,
-                        new Name(str_replace("Model", "Dto", $typeName))
-                    );
-                    continue;
-                }
+            if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
+                $dtoNameResolver = DtoNameResolver::createByFullModelName($typeName);
+                $params[]        = new Param(
+                    new Variable('requestDto'),
+                    null,
+                    new Name('\\' . $dtoNameResolver->getFullDtoClassName())
+                );
+                continue;
+            }
 
             if (str_contains($typeName, 'array')) {
                 $arElementType = (new OperationWrapper($operation))->getArrayItemType();
-                if (str_contains($arElementType, '\\Dto\\')) {
-                    $collectionClass = new Name(self::makeCollectionClassName($arElementType));
-                    $params[] = new Param(
-                        new Variable($m->var->name),
+                if (str_contains($arElementType, '\\Model\\')) {
+                    $dtoNameResolver = DtoNameResolver::createByFullModelName($arElementType);
+                    $collectionClass = new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                    $params[]        = new Param(
+                        new Variable('requestDtoCollection'),
                         null,
                         $collectionClass
                     );
@@ -87,15 +90,16 @@ class UseCaseBoilerplateSchema
             if ($returnTypes[0] == "null") {
                 $returnType = new Identifier('void');
             } else {
-                $dtoClassName = $v;
-                if (self::ifIsDtoArray($dtoClassName)) {
-                    $dtoClassName = str_replace('[]', '', $dtoClassName);
-                    $collectionClass = new Name(self::makeCollectionClassName($dtoClassName));
-                    $returnType = $collectionClass;
+                $modelName = $v;
+                if (self::ifIsModelArray($modelName)) {
+                    $modelName       = str_replace('[]', '', $modelName);
+                    $dtoNameResolver = DtoNameResolver::createByFullModelName($modelName);
+                    $collectionClass = new Name($dtoNameResolver->getFullCollectionClassName());
+                    $returnType      = $collectionClass;
                 } else {
-                    $returnType = new Name($dtoClassName);
+                    $returnType = new Name($v);
                 }
-                $dto = new Name($dtoClassName);
+                $dto = new Name($v);
             }
 
         } else {
@@ -103,15 +107,22 @@ class UseCaseBoilerplateSchema
                 if ($v == "null") {
                     $returnType[] = new Identifier("null");
                 } else {
-                    $dtoClassName = $v;
-                    if (self::ifIsDtoArray($dtoClassName)) {
-                            $dtoClassName = str_replace('[]', '', $dtoClassName);
-                            $collectionClass = new Name(self::makeCollectionClassName($dtoClassName));
-                            $returnType[] = $collectionClass;
+                    $modelName = $v;
+                    if (self::ifIsModelArray($modelName)) {
+                        $modelName        = str_replace('[]', '', $modelName);
+                        $dtoNameResolver  = DtoNameResolver::createByFullModelName($modelName);
+                        $collectionClass  = new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                        $resultReturnType = $collectionClass;
+                        $returnType[]     = $resultReturnType;
+                    } elseif (str_contains($v, '\\Model\\')) {
+                        $dtoNameResolver  = DtoNameResolver::createByFullModelName($v);
+                        $resultReturnType = new Name('\\' . $dtoNameResolver->getFullDtoClassName());
+                        $returnType[]     = $resultReturnType;
                     } else {
-                        $returnType[] = new Name($dtoClassName);
+                        $resultReturnType = new Name($v);
+                        $returnType[]     = $resultReturnType;
                     }
-                    $dto = new Name($dtoClassName);
+                    $dto = $resultReturnType;
                 }
             }
         }
@@ -173,13 +184,8 @@ class UseCaseBoilerplateSchema
         );
     }
 
-    private static function makeCollectionClassName(string $dtoClassName): string
+    private static function ifIsModelArray(string $v): bool
     {
-        return str_replace('\\Dto\\', '\\Dto\\Collection\\', $dtoClassName) . 'Collection';
-    }
-
-    private static function ifIsDtoArray(string $v): bool
-    {
-        return str_contains($v, '[]') && str_contains($v, '\\Dto\\');
+        return str_contains($v, '[]') && str_contains($v, '\\Model\\');
     }
 }
