@@ -109,7 +109,7 @@ class OperationWrapper
         } elseif (($items instanceof Reference)) {
             $mergedUri = (string)$items->getMergedUri();
             if (preg_match('#/components/schemas/(.+)$#', $mergedUri, $matches)) {
-                return DtoNameResolver::createByModelName($matches[1])->getFullDtoClassName();
+                return DtoNameResolver::createByModelName($matches[1])->getDtoFullClassName();
             }
         }
 
