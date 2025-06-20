@@ -110,11 +110,11 @@ class OperationGenerator
             }
 
             if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
-                $dtoNameResolver = DtoNameResolver::createByFullModelName($typeName);
+                $dtoNameResolver = DtoNameResolver::createByModelFullName($typeName);
                 $params[]        = new Param(
                     new Expr\Variable('requestDto'),
                     null,
-                    new Name('\\' . $dtoNameResolver->getFullDtoClassName())
+                    new Name('\\' . $dtoNameResolver->getDtoFullClassName())
                 );
                 continue;
             }
@@ -122,8 +122,8 @@ class OperationGenerator
             if (str_contains($typeName, 'array')) {
                 $arElementType = (new OperationWrapper($operation))->getArrayItemType();
                 if (str_contains($typeName, '\\Model\\')) {
-                    $dtoNameResolver = DtoNameResolver::createByFullModelName($arElementType);
-                    $collectionClass = new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                    $dtoNameResolver = DtoNameResolver::createByModelFullName($arElementType);
+                    $collectionClass = new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
                     $params[]        = new Param(
                         new Variable('requestDtoCollection'),
                         null,
@@ -186,9 +186,9 @@ class OperationGenerator
         if ($this->ifIsModelArray($v)) {
             try {
                 $modelFullName   = str_replace('[]', '', $v);
-                $dtoNameResolver = DtoNameResolver::createByFullModelName($modelFullName);
+                $dtoNameResolver = DtoNameResolver::createByModelFullName($modelFullName);
 
-                return new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                return new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
             } catch (\Throwable $e) {
                 throw new \RuntimeException(var_export([
                     'dtoFullClassName' => $modelFullName,
@@ -197,8 +197,8 @@ class OperationGenerator
         }
 
         if (DtoNameResolver::isModelFullName($v)) {
-            $dtoNameResolver = DtoNameResolver::createByFullModelName($v);
-            $v               = $dtoNameResolver->getFullDtoClassName();
+            $dtoNameResolver = DtoNameResolver::createByModelFullName($v);
+            $v               = $dtoNameResolver->getDtoFullClassName();
         }
 
         return new Name\FullyQualified($v);

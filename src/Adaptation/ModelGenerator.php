@@ -77,7 +77,7 @@ class ModelGenerator extends BaseModelGenerator
             $dtoNameResolver = DtoNameResolver::createByModelName($class->getName());
             $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $dtoNameResolver->getDtoClassName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
 
-            $collectionClassName = $dtoNameResolver->getDtoCollectionClassName();
+            $collectionClassName = $dtoNameResolver->getCollectionClassName();
             $collection = $this->createCollectionClass($class, $schema);
             $collectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
 
@@ -142,9 +142,9 @@ EOD
     {
         $modelClassName = $this->getNaming()->getClassName($class->getName());
         $dtoNameResolver = DtoNameResolver::createByModelName($modelClassName);
-        $collectionClassName = $dtoNameResolver->getDtoCollectionClassName();
+        $collectionClassName = $dtoNameResolver->getCollectionClassName();
 
-        $dtoFqcn = $dtoNameResolver->getFullDtoClassName();
+        $dtoFqcn = $dtoNameResolver->getDtoFullClassName();
 
         $useDto = new Use_([new UseItem(new Name($dtoFqcn))]);
 

@@ -50,11 +50,11 @@ class UseCaseBoilerplateSchema
             }
 
             if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
-                $dtoNameResolver = DtoNameResolver::createByFullModelName($typeName);
+                $dtoNameResolver = DtoNameResolver::createByModelFullName($typeName);
                 $params[]        = new Param(
                     new Variable('requestDto'),
                     null,
-                    new Name('\\' . $dtoNameResolver->getFullDtoClassName())
+                    new Name('\\' . $dtoNameResolver->getDtoFullClassName())
                 );
                 continue;
             }
@@ -62,8 +62,8 @@ class UseCaseBoilerplateSchema
             if (str_contains($typeName, 'array')) {
                 $arElementType = (new OperationWrapper($operation))->getArrayItemType();
                 if (str_contains($arElementType, '\\Model\\')) {
-                    $dtoNameResolver = DtoNameResolver::createByFullModelName($arElementType);
-                    $collectionClass = new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                    $dtoNameResolver = DtoNameResolver::createByModelFullName($arElementType);
+                    $collectionClass = new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
                     $params[]        = new Param(
                         new Variable('requestDtoCollection'),
                         null,
@@ -93,8 +93,8 @@ class UseCaseBoilerplateSchema
                 $modelName = $v;
                 if (self::ifIsModelArray($modelName)) {
                     $modelName       = str_replace('[]', '', $modelName);
-                    $dtoNameResolver = DtoNameResolver::createByFullModelName($modelName);
-                    $collectionClass = new Name($dtoNameResolver->getFullCollectionClassName());
+                    $dtoNameResolver = DtoNameResolver::createByModelFullName($modelName);
+                    $collectionClass = new Name($dtoNameResolver->getCollectionFullClassName());
                     $returnType      = $collectionClass;
                 } else {
                     $returnType = new Name($v);
@@ -110,13 +110,13 @@ class UseCaseBoilerplateSchema
                     $modelName = $v;
                     if (self::ifIsModelArray($modelName)) {
                         $modelName        = str_replace('[]', '', $modelName);
-                        $dtoNameResolver  = DtoNameResolver::createByFullModelName($modelName);
-                        $collectionClass  = new Name('\\' . $dtoNameResolver->getFullCollectionClassName());
+                        $dtoNameResolver  = DtoNameResolver::createByModelFullName($modelName);
+                        $collectionClass  = new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
                         $resultReturnType = $collectionClass;
                         $returnType[]     = $resultReturnType;
                     } elseif (str_contains($v, '\\Model\\')) {
-                        $dtoNameResolver  = DtoNameResolver::createByFullModelName($v);
-                        $resultReturnType = new Name('\\' . $dtoNameResolver->getFullDtoClassName());
+                        $dtoNameResolver  = DtoNameResolver::createByModelFullName($v);
+                        $resultReturnType = new Name('\\' . $dtoNameResolver->getDtoFullClassName());
                         $returnType[]     = $resultReturnType;
                     } else {
                         $resultReturnType = new Name($v);

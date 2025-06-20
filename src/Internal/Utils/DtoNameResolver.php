@@ -18,11 +18,11 @@ class DtoNameResolver
     {
     }
 
-    public static function createByFullModelName(string $fullModelName): self
+    public static function createByModelFullName(string $modelFullName): self
     {
         $matches = [];
-        if (!preg_match('#^.*\\\\Model\\\\([A-Z][A-Za-z0-9_]*)$#', $fullModelName, $matches)) {
-            return throw new RuntimeException('Invalid model full name: ' . $fullModelName, 400);
+        if (!preg_match('#^.*\\\\Model\\\\([A-Z][A-Za-z0-9_]*)$#', $modelFullName, $matches)) {
+            return throw new RuntimeException('Invalid model full name: ' . $modelFullName, 400);
         }
 
         return new self($matches[1]);
@@ -37,11 +37,11 @@ class DtoNameResolver
         return new self($modelName);
     }
 
-    public static function createByFullDtoClassName(string $fullDtoClassName): self
+    public static function createByDtoFullClassName(string $dtoFullClassName): self
     {
         $matches = [];
-        if (!preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\(?!Collection\\\\)([A-Z][A-Za-z0-9_]+)Dto$#', $fullDtoClassName, $matches)) {
-            return throw new RuntimeException('Invalid full dto class name: ' . $fullDtoClassName, 400);
+        if (!preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\(?!Collection\\\\)([A-Z][A-Za-z0-9_]+)Dto$#', $dtoFullClassName, $matches)) {
+            return throw new RuntimeException('Invalid full dto class name: ' . $dtoFullClassName, 400);
         }
 
         return new self($matches[1]);
@@ -57,27 +57,27 @@ class DtoNameResolver
         return new self($matches[1]);
     }
 
-    public static function createByFullCollectionClassName(string $fullDtoCollectionClassName): ?self
+    public static function createByCollectionFullClassName(string $dtoFullCollectionClassName): ?self
     {
         $matches = [];
-        if (!preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\' . self::COLLECTION_NAMESPACE . '\\\\([A-Z][A-Za-z0-9_]+)DtoCollection$#', $fullDtoCollectionClassName, $matches)) {
-            return throw new RuntimeException('Invalid dto collection class name: ' . $fullDtoCollectionClassName, 400);
+        if (!preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\' . self::COLLECTION_NAMESPACE . '\\\\([A-Z][A-Za-z0-9_]+)DtoCollection$#', $dtoFullCollectionClassName, $matches)) {
+            return throw new RuntimeException('Invalid dto collection class name: ' . $dtoFullCollectionClassName, 400);
         }
 
         return new self($matches[1]);
     }
 
-    public static function isFullCollectionClassName(string $fullDtoCollectionClassName): bool
+    public static function isCollectionFullClassName(string $dtoFullCollectionClassName): bool
     {
-        return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\' . self::COLLECTION_NAMESPACE . '\\\\([A-Z][A-Za-z0-9_]+)DtoCollection$#', $fullDtoCollectionClassName);
+        return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\' . self::COLLECTION_NAMESPACE . '\\\\([A-Z][A-Za-z0-9_]+)DtoCollection$#', $dtoFullCollectionClassName);
     }
 
-    public static function isFullDtoClassName(string $fullDtoClassName): bool
+    public static function isDtoFullClassName(string $dtoFullClassName): bool
     {
-        return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\(?!' . self::COLLECTION_NAMESPACE . '\\\\)([A-Z][A-Za-z0-9_]+)Dto$#', $fullDtoClassName);
+        return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\' . self::DTO_NAMESPACE . '\\\\(?!' . self::COLLECTION_NAMESPACE . '\\\\)([A-Z][A-Za-z0-9_]+)Dto$#', $dtoFullClassName);
     }
 
-    public function getFullDtoClassName(): string
+    public function getDtoFullClassName(): string
     {
         return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . $this->getDtoClassName();
     }
@@ -87,9 +87,9 @@ class DtoNameResolver
         return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\Model\\\\(?!' . self::COLLECTION_NAMESPACE . '\\\\)([A-Z][A-Za-z0-9_]+)$#', $modelFullName);
     }
 
-    public function getFullCollectionClassName(): string
+    public function getCollectionFullClassName(): string
     {
-        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . self::COLLECTION_NAMESPACE . '\\' . $this->getDtoCollectionClassName();
+        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . self::COLLECTION_NAMESPACE . '\\' . $this->getCollectionClassName();
     }
 
     public function getDtoClassName(): string
@@ -97,12 +97,12 @@ class DtoNameResolver
         return $this->modelName . 'Dto';
     }
 
-    public function getDtoCollectionClassName(): string
+    public function getCollectionClassName(): string
     {
         return $this->modelName . 'DtoCollection';
     }
 
-    public static function getDtoCollectionNamespace(): string
+    public static function getCollectionNamespace(): string
     {
         return self::getDtoNamespace() . '\\' . self::COLLECTION_NAMESPACE;
     }
