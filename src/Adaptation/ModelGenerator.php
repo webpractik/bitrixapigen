@@ -13,7 +13,12 @@ use Jane\Component\OpenApiCommon\Guesser\Guess\ClassGuess;
 use Jane\Component\OpenApiCommon\Guesser\Guess\ParentClass;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
+use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
+use PhpParser\Node\NullableType;
+use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\UseItem;
 use Webpractik\Bitrixapigen\Internal\AbstractCollectionBoilerplateSchema;
@@ -62,26 +67,21 @@ class ModelGenerator extends BaseModelGenerator
         ));
 
         foreach ($schema->getClasses() as $class) {
-            $properties = [];
-            $methods = [];
-
-            /** @var Property $property */
-            foreach ($class->getLocalProperties() as $property) {
-                $properties[] = $this->createProperty($property, $namespace, null, $context->isStrict());
-                $methods = array_merge($methods, $this->doCreateClassMethods($class, $property, $namespace, $context->isStrict()));
-            }
-
-            $model = $this->doCreateModel($class, $properties, $methods);
-
-            $namespaceStmt = new Stmt\Namespace_(new Name($namespace), [$model]);
             $dtoNameResolver = DtoNameResolver::createByModelName($class->getName());
-            $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $dtoNameResolver->getDtoClassName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
-
+            // $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $dtoNameResolver->getDtoClassName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
+            
             $collectionClassName = $dtoNameResolver->getCollectionClassName();
             $collection = $this->createCollectionClass($class, $schema);
             $collectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
 
             $schema->addFile(new File($collectionPath, $collection, 'collection'));
+            
+            //by Sline-X
+            $readonlyDtoClassName = $class->getName();
+            $readonlyDtoCollection = $this->createReadonlyDtoClass($class, $schema);
+            $readonlyDtoCollectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
+            
+            $schema->addFile(new File($readonlyDtoCollectionPath, $readonlyDtoCollection, self::FILE_TYPE_MODEL));
         }
     }
 
@@ -164,6 +164,42 @@ EOD
         return new Namespace_(
             new Name($schema->getNamespace() . '\\Dto\\Collection'),
             [$useDto, $classNode]
+        );
+    }
+    
+    private function createReadonlyDtoClass(BaseClassGuess $class, Schema $schema): Namespace_
+    {
+        $dtoClassName = $this->getNaming()->getClassName($class->getName()) . 'Dto';
+        $readonlyClassName = $dtoClassName;
+        
+        $paramsObjects = [];
+        
+        foreach ($class->getLocalProperties() as $property) {
+            //new Assign($variable, $value)
+            
+            $type = new Identifier($property->getType()->getName());
+            if ($property->isNullable()) {
+                $type = new NullableType($type);
+            }
+            $paramsObjects[] = new Param(
+                var: new Variable($property->getName()),
+                type: $type,
+                flags: Modifiers::PUBLIC | Modifiers::READONLY);
+        }
+        
+        $__construct = new ClassMethod('__construct', [
+            'params' => $paramsObjects,
+            'flags' => Modifiers::PUBLIC,
+        ]);
+        
+        $classNode = new Class_($readonlyClassName, [
+            'extends' => new Name('AbstractDto'),
+            'stmts' => [$__construct]
+        ]);
+        
+        return new Namespace_(
+            new Name($schema->getNamespace() . '\\Dto'),
+            [$classNode]
         );
     }
 }
