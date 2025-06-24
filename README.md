@@ -70,13 +70,130 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
 
 1. Подготовьте OpenAPI-спецификацию (JSON или YAML)
 > 📝 Все данные передаваемые в телах запросов должны быть описаны через схемы (`schema`) в OpenAPI-спецификации. Именно на их основе происходит генерация соответствующих DTO, коллекций и корректная передача аргументов в UseCase.
-2. Выполните генерацию:
 
-*php vendor/bin/bitrixapigen generate --openapi-file path/to/openapi.yaml*  
+### Требования к OpenAPI-контракту
+
+ ✅ Правильно:
+Запрос и ответ должны быть описаны отдельными схемами.
+
+```yaml
+/api/user/register/:
+  post:
+    tags:
+      - User
+    summary: 'User registration'
+    description: 'Регистрация пользователя.'
+    operationId: userRegistration
+    requestBody:
+      description: 'Обязательные поля'
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserRegisterFields'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterResponse'
+```
+
+❌ Неправильно:
+```yaml
+/api/user/register/:
+  post:
+    tags:
+      - User
+    summary: 'User registration'
+    description: 'Регистрация пользователя.'
+    operationId: userRegistration
+    requestBody:
+      description: 'Обязательные поля'
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              EMAIL:
+                type: string
+              PASSWORD:
+                type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ID:
+                  type: number
+                  example: '111'
+```
+
+☑️ Исключение: массив объектов
+```yaml
+/api/user/createWithList:
+  post:
+    tags:
+      - User
+    summary: Creates list of users with given input array
+    description: Creates list of users with given input array
+    operationId: createUsersWithListInput
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: array
+            minItems: 5
+            items:
+              $ref: '#/components/schemas/User'
+```
+
+⚠️ Бинарный файл
+Внимание! С файлом на текущий момент работает только так, описание через схему ломает генерацию (баг):
+
+```yaml
+/api/user/{userId}/uploadImage:
+  post:
+    tags:
+      - User
+    summary: uploads an image
+    description: ''
+    operationId: uploadFile
+    parameters:
+      - name: userId
+        in: path
+        description: ID of user to update
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: additionalMetadata
+        in: query
+        description: Additional Metadata
+        required: false
+        schema:
+          type: string
+    requestBody:
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+```
+4. Выполните генерацию:
+
+*php vendor/bin/bitrixapigen generate --openapi-file path/to/openapi.yaml --locale ru*  
 или кратко:  
-*php vendor/bin/bitrixapigen generate -o path/to/openapi.yaml*
+*php vendor/bin/bitrixapigen generate -o path/to/openapi.yaml -l ru*
 
 > 🟡 Параметр *--openapi-file* (или *-o*) — **обязателен**
+
+> 🟡 Параметр *--locale* (или *-l*) — язык для сообщений валидатора по стандату BCP 47 **не обязателен, по умолчанию будет ru**
 
 3. Установите модуль:
     - через административную панель Bitrix (`/bitrix/admin/partner_modules.php`)
@@ -230,6 +347,24 @@ x-bitrix-format: true
 
 ---
 
+## ✅ Валидация
+
+Валидируются все входные данные, которые описаны согласно разделу [Требования к OpenAPI-контракту](#требования-к-openapi-контракту), за исключением бинарного файла, переданного в формате `application/octet-stream`.
+
+В случае ошибок валидации возвращается HTTP статус **422** и структура ответа следующего вида:
+
+```json
+{
+    "message": "Валидация не пройдена",
+    "errors": [
+        {
+            "field": "[1][username]",
+            "message": "Это поле отсутствует."
+        }
+    ]
+}
+```
+
 ## 🛠 Требования
 
 - PHP 8.1+
@@ -240,8 +375,8 @@ x-bitrix-format: true
 
 ## Roadmap
 
-- [ ] Генерация валидаций
-- [ ] Генерация ошибок и логика их обработки в контроллере=
+- [ ] Генерация ошибок и логика их обработки в контроллере (важно, чтобы возвращались только описанные схемой статусы)
 - [ ] Генерация тестов
 - [ ] Авторизация в роутах
+- [ ] Привести генерируемый код в соответствие со стандартом PSR
 

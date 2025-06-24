@@ -75,8 +75,11 @@ class ControllerBoilerplateSchema
                     new Variable('dto')
                 );
                 $dtoTypeName = str_replace('?', '', $typeName);
+
+                $stmts = self::getValidatorResolver($stmts, mb_substr(str_replace("Model", "Validator", $dtoTypeName . 'Constraint'), 1));
+
                 $dtoNameResolver = DtoNameResolver::createByModelFullName($dtoTypeName);
-                $stmts = array_merge($stmts, self::getDtoResolver($stmts, $dtoNameResolver->getDtoFullClassName()));
+                $stmts = self::getDtoResolver($stmts, $dtoNameResolver->getDtoFullClassName());
 
                 if($operationWrapped->isMultipartFormData()) {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -93,9 +96,13 @@ class ControllerBoilerplateSchema
                     $args[] = new Arg(
                         new Variable('collection')
                     );
+
+                    $constraintClassName = 'Webpractik\Bitrixgen\Validator\\'.ucfirst($operation->getOperation()->getOperationId() . 'OperationConstraint');
+                    $stmts = self::getValidatorResolver($stmts,  $constraintClassName);
+
                     $dtoNameResolver = DtoNameResolver::createByDtoFullClassName($arElementType);
                     $collectionClassName = new Name($dtoNameResolver->getCollectionFullClassName());
-                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, $collectionClassName));
+                    $stmts = self::getDtoCollectionResolver($stmts, $collectionClassName);
 
                     if($operationWrapped->isMultipartFormData()) {
                         $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -337,6 +344,44 @@ class ControllerBoilerplateSchema
             )
         );
 
+        return $stmts;
+    }
+
+    public static function getValidatorResolver($stmts, $constraintPath)
+    {
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable("constraint"),
+                new New_(
+                    new FullyQualified($constraintPath)
+                )
+            )
+        );
+
+        $stmts[] = new Expression(
+            new Assign(
+                new Variable('locale'),
+                new MethodCall(
+                    new StaticCall(
+                        new Name('ModuleContext'),
+                        'get'
+                    ),
+                    'getLocale'
+                )
+            )
+        );
+
+        $stmts[] = new Expression(
+            new MethodCall(
+                new Variable('this'),
+                'validate',
+                [
+                    new Variable('requestBody'),
+                    new Variable('constraint'),
+                    new Variable('locale'),
+                ]
+            )
+        );
 
         return $stmts;
     }

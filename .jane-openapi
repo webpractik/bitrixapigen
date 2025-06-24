@@ -4,4 +4,5 @@ return [
     'openapi-file' => 'openapi.json',
     'namespace' => 'Webpractik\Bitrixgen',
     'directory' => 'local/modules/webpractik.bitrixgen/lib',
+    'validation' => true,
 ];
