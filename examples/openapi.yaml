@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: GGE API
+  title: Test API
   version: 1.0.0
 tags:
   - name: ServiceExpertise
