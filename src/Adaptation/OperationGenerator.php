@@ -19,6 +19,7 @@ use PhpParser\Node\Stmt;
 use Psr\Http\Message\ResponseInterface;
 use Jane\Component\JsonSchema\Generator\File;
 use Webpractik\Bitrixapigen\Internal\ControllerBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
 class OperationGenerator
@@ -35,8 +36,8 @@ class OperationGenerator
         return implode('', array_map(function ($value) {
                 return ' * @throws ' . $value . "\n";
             }, $throwTypes))
-            . " *\n"
-            . ' * @return ' . implode('|', $returnTypes);
+               . " *\n"
+               . ' * @return ' . implode('|', $returnTypes);
     }
 
     public function createOperation(string $name, OperationGuess $operation, Context $context): Stmt\ClassMethod
@@ -47,12 +48,12 @@ class OperationGenerator
 
         $lastMethodParam = '';
         foreach ($methodParams as $param) {
-            $endpointArgs[] = new Arg($param->var);
+            $endpointArgs[]  = new Arg($param->var);
             $lastMethodParam = $param->var->name;
         }
 
         $paramsPosition = $lastMethodParam === 'accept' ? \count($methodParams) - 1 : \count($methodParams);
-        array_splice($methodParams, $paramsPosition, 0,);
+        array_splice($methodParams, $paramsPosition, 0);
 
         $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
 
@@ -69,6 +70,7 @@ class OperationGenerator
     public function getInfoForUseCase(OperationGuess $operation, Context $context): array
     {
         [$endpointName, $methodParams, $methodDoc, $returnTypes, $throwTypes] = $this->endpointGenerator->getInfoForInterface($operation, $context);
+
         return [$methodParams, $returnTypes];
     }
 
@@ -78,8 +80,8 @@ class OperationGenerator
         $returnType = [];
 
         if (count($returnTypes) == 1) {
-            $v = reset($returnTypes);
-            $returnType = $this->getReturnType(v: $v, isSingleReturnType: true);
+            $v               = reset($returnTypes);
+            $returnType      = $this->getReturnType(v: $v, isSingleReturnType: true);
         } else {
             foreach ($returnTypes as $v) {
                 $returnType[] = $this->getReturnType($v, isSingleReturnType: false);
@@ -100,28 +102,30 @@ class OperationGenerator
                     null,
                     new Identifier('array')
                 );
-            } elseif($m->var->name !== 'requestBody') {
+            } elseif ($m->var->name !== 'requestBody') {
                 $params[] = new Param(
                     var: new Variable($m->var->name),
                     type: new Identifier($typeName)
                 );
             }
 
-                if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
-                    $params[] = new Param(
-                        new Expr\Variable($m->var->name),
-                        null,
-                        new Name(str_replace("Model", "Dto", $typeName))
-                    );
-                    continue;
-                }
+            if (str_contains($m->type->name, 'Webpractik\Bitrixgen')) {
+                $dtoNameResolver = DtoNameResolver::createByModelFullName($typeName);
+                $params[]        = new Param(
+                    new Expr\Variable('requestDto'),
+                    null,
+                    new Name('\\' . $dtoNameResolver->getDtoFullClassName())
+                );
+                continue;
+            }
 
             if (str_contains($typeName, 'array')) {
                 $arElementType = (new OperationWrapper($operation))->getArrayItemType();
-                if (str_contains($arElementType, '\\Dto\\')) {
-                    $collectionClass = new Name(self::makeCollectionClassName($arElementType));
-                    $params[] = new Param(
-                        new Variable($m->var->name),
+                if (str_contains($typeName, '\\Model\\')) {
+                    $dtoNameResolver = DtoNameResolver::createByModelFullName($arElementType);
+                    $collectionClass = new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
+                    $params[]        = new Param(
+                        new Variable('requestDtoCollection'),
                         null,
                         $collectionClass
                     );
@@ -138,7 +142,7 @@ class OperationGenerator
                 new Identifier('string')
             );
         }
-//        var_dump($params);
+
 
         return new File(
             $iPath,
@@ -154,22 +158,24 @@ class OperationGenerator
                                     'process',
                                 ),
                                 [
-                                    'flags' => Modifiers::PUBLIC,
-                                    'params' => $params,
+                                    'flags'      => Modifiers::PUBLIC,
+                                    'params'     => $params,
                                     'returnType' => count($returnTypes) == 1 ? $returnType : new UnionType($returnType),
-                                    'stmts' => null,
+                                    'stmts'      => null,
                                 ]
-                            )
-                        ]
+                            ),
+                        ],
                     ]
-                )]),
+                ),
+            ]),
             'client'
         );
     }
 
     /**
      * @param string $v
-     * @param bool $isSingleReturnType - у функции один тип возвращаемого значения?
+     * @param bool   $isSingleReturnType - у функции один тип возвращаемого значения?
+     *
      * @return Identifier|FullyQualified|Name
      */
     private function getReturnType(string $v, bool $isSingleReturnType): Identifier|FullyQualified|Name
@@ -177,21 +183,29 @@ class OperationGenerator
         if ($v === 'null') {
             return new Identifier($isSingleReturnType ? 'void' : 'null');
         }
-        if ($this->ifIsDtoArray($v)) {
-            $dtoClassName = str_replace('[]', '', $v);
-            return new Name($this->makeCollectionClassName($dtoClassName));
+        if ($this->ifIsModelArray($v)) {
+            try {
+                $modelFullName   = str_replace('[]', '', $v);
+                $dtoNameResolver = DtoNameResolver::createByModelFullName($modelFullName);
+
+                return new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
+            } catch (\Throwable $e) {
+                throw new \RuntimeException(var_export([
+                    'dtoFullClassName' => $modelFullName,
+                ], true));
+            }
         }
 
-        return new Name\FullyQualified(mb_substr($v, 1));
+        if (DtoNameResolver::isModelFullName($v)) {
+            $dtoNameResolver = DtoNameResolver::createByModelFullName($v);
+            $v               = $dtoNameResolver->getDtoFullClassName();
+        }
+
+        return new Name\FullyQualified($v);
     }
 
-    private function makeCollectionClassName(string $dtoClassName): string
+    private function ifIsModelArray(string $v): bool
     {
-        return str_replace('\\Dto\\', '\\Dto\\Collection\\', $dtoClassName) . 'Collection';
-    }
-
-    private function ifIsDtoArray(string $v): bool
-    {
-        return str_contains($v, '[]') && str_contains($v, '\\Dto\\');
+        return str_contains($v, '[]') && str_contains($v, '\\Model\\');
     }
 }

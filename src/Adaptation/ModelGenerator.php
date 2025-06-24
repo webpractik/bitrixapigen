@@ -27,6 +27,8 @@ use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\BitrixFileNormalizerBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\CollectionConstraintBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\UploadedFileCollectionBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
+
 use const DIRECTORY_SEPARATOR;
 
 class ModelGenerator extends BaseModelGenerator
@@ -77,9 +79,10 @@ class ModelGenerator extends BaseModelGenerator
             $model = $this->doCreateModel($class, $properties, $methods);
 
             $namespaceStmt = new Stmt\Namespace_(new Name($namespace), [$model]);
-            $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $class->getName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
+            $dtoNameResolver = DtoNameResolver::createByModelName($class->getName());
+            $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $dtoNameResolver->getDtoClassName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
 
-            $collectionClassName = $class->getName() . 'Collection';
+            $collectionClassName = $dtoNameResolver->getCollectionClassName();
             $collection = $this->createCollectionClass($class, $schema);
             $collectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
 
@@ -97,9 +100,9 @@ class ModelGenerator extends BaseModelGenerator
             $extends = $this->getNaming()->getClassName($class->getParentClass()->getName());
         }
 
-
+        $modelName = $class->getName();
         $classModel = $this->createModel(
-            $class->getName(),
+            $modelName,
             $properties,
             [],
             \count($class->getExtensionsType()) > 0,
@@ -130,8 +133,10 @@ EOD
             )];
         }
 
+        $dtoNameResolver = DtoNameResolver::createByModelName($name);
+
         return new Stmt\Class_(
-            $this->getNaming()->getClassName($name),
+            $this->getNaming()->getClassName($dtoNameResolver->getDtoClassName()),
             [
                 'stmts' => array_merge($properties, $methods),
                 'extends' => $classExtends,
@@ -142,10 +147,11 @@ EOD
 
     protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $dtoClassName = $this->getNaming()->getClassName($class->getName());
-        $collectionClassName = $dtoClassName . 'Collection';
+        $modelClassName = $this->getNaming()->getClassName($class->getName());
+        $dtoNameResolver = DtoNameResolver::createByModelName($modelClassName);
+        $collectionClassName = $dtoNameResolver->getCollectionClassName();
 
-        $dtoFqcn = $schema->getNamespace() . '\\Dto\\' . $dtoClassName;
+        $dtoFqcn = $dtoNameResolver->getDtoFullClassName();
 
         $useDto = new Use_([new UseItem(new Name($dtoFqcn))]);
 
@@ -153,7 +159,7 @@ EOD
             'flags' => Modifiers::PUBLIC,
             'returnType' => new Name('string'),
             'stmts' => [
-                new Stmt\Return_(new ClassConstFetch(new Name($dtoClassName), 'class'))
+                new Stmt\Return_(new ClassConstFetch(new Name($dtoNameResolver->getDtoClassName()), 'class'))
             ]
         ]);
 
