@@ -13,6 +13,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
@@ -20,13 +21,12 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Param;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Catch_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
-use PhpParser\Node\Stmt\Catch_;
-use PhpParser\Node\Stmt;
-use PhpParser\Node\Expr\Throw_;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
 
@@ -36,12 +36,11 @@ class ControllerBoilerplateSchema
     public static function getBoilerplateForProcessWithDtoBody(OperationGuess $operation, string $name, array $methodParams, array $returnTypes, bool $isOctetStreamFile): ClassMethod
     {
         $operationWrapped = (new OperationWrapper($operation));
-        $stmts = [];
-        $args = [];
-        $params = [];
+        $stmts            = [];
+        $args             = [];
+        $params           = [];
 
         $stmtsGetData = [];
-
 
         foreach ($methodParams as $m) {
             $typeName = $m->type?->name ?? '';
@@ -56,12 +55,12 @@ class ControllerBoilerplateSchema
             } elseif ($operationWrapped->isApplicationJson() && $m->var->name === 'requestBody') {
                 $stmtsGetData = array_merge($stmtsGetData, self::getDataFromRequestBodyJson());
             } elseif ($m->var->name === 'queryParameters') {
-                $args[] = new Arg(
+                $args[]         = new Arg(
                     new Variable($m->var->name)
                 );
                 $stmtsGetData[] = self::getQueryParamsResolver();
             } else {
-                $args[] = new Arg(
+                $args[]   = new Arg(
                     new Variable($m->var->name)
                 );
                 $params[] = new Param(
@@ -70,16 +69,15 @@ class ControllerBoilerplateSchema
                 );
             }
 
-
             if (str_contains($typeName, 'Webpractik\Bitrixgen')) {
-                $args[] = new Arg(
+                $args[]          = new Arg(
                     new Variable('dto')
                 );
-                $dtoTypeName = str_replace('?', '', $typeName);
+                $dtoTypeName     = str_replace('?', '', $typeName);
                 $dtoNameResolver = DtoNameResolver::createByModelFullName($dtoTypeName);
-                $stmts = array_merge($stmts, self::getDataToDtoConverter($stmts, $dtoNameResolver->getDtoFullClassName()));
+                $stmts           = array_merge($stmts, self::getDataToDtoConverter($stmts, $dtoNameResolver->getDtoFullClassName()));
 
-                if($operationWrapped->isMultipartFormData()) {
+                if ($operationWrapped->isMultipartFormData()) {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
                 } else {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesAsEmptyArray());
@@ -91,14 +89,14 @@ class ControllerBoilerplateSchema
                 $arElementType = $operationWrapped->getArrayItemType();
 
                 if ($arElementType !== null && DtoNameResolver::isDtoFullClassName($arElementType)) {
-                    $args[] = new Arg(
+                    $args[]              = new Arg(
                         new Variable('collection')
                     );
-                    $dtoNameResolver = DtoNameResolver::createByDtoFullClassName($arElementType);
+                    $dtoNameResolver     = DtoNameResolver::createByDtoFullClassName($arElementType);
                     $collectionClassName = new Name($dtoNameResolver->getCollectionFullClassName());
-                    $stmts = array_merge($stmts, self::getDtoCollectionResolver($stmts, $collectionClassName));
+                    $stmts               = array_merge($stmts, self::getDtoCollectionResolver($stmts, $collectionClassName));
 
-                    if($operationWrapped->isMultipartFormData()) {
+                    if ($operationWrapped->isMultipartFormData()) {
                         $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
                     } else {
                         $stmtsGetData = array_merge($stmtsGetData, self::getFilesAsEmptyArray());
@@ -145,7 +143,7 @@ class ControllerBoilerplateSchema
                     [
                         new Arg(
                             new String_("webpractik.bitrixgen." . $name)
-                        )
+                        ),
                     ]
                 )
             )
@@ -174,7 +172,6 @@ class ControllerBoilerplateSchema
                 );
             }
 
-
             $catchStmt = new Catch_(
                 [new Name('Throwable')],
                 new Variable('e'),
@@ -187,7 +184,7 @@ class ControllerBoilerplateSchema
                                 [new Arg(new Variable('e'))]
                             )
                         )
-                    )
+                    ),
                 ]
             );
 
@@ -195,7 +192,7 @@ class ControllerBoilerplateSchema
                 new Stmt\TryCatch(
                     $tryBlock,
                     [$catchStmt]
-                )
+                ),
             ];
         } else {
             if ($isNeedReturnData) {
@@ -205,7 +202,7 @@ class ControllerBoilerplateSchema
                         [
                             new Arg(
                                 $useCaseCallMethod
-                            )
+                            ),
                         ]
                     )
                 );
@@ -223,13 +220,12 @@ class ControllerBoilerplateSchema
             }
         }
 
-
         return new ClassMethod(
             new Identifier($name . 'Action'),
             [
                 'params' => $params,
-                'type' => Modifiers::PUBLIC,
-                'stmts' => $stmts
+                'type'   => Modifiers::PUBLIC,
+                'stmts'  => $stmts,
             ]
         );
     }
@@ -266,12 +262,12 @@ class ControllerBoilerplateSchema
                                     new Arg(new Variable('requestBody')),
                                     new Arg(new ConstFetch(new Name('true'))),
                                     new Arg(new LNumber(512)),
-                                    new Arg(new ConstFetch(new Name('JSON_THROW_ON_ERROR')))
+                                    new Arg(new ConstFetch(new Name('JSON_THROW_ON_ERROR'))),
                                 ]
                             )
                         )
-                    )
-                ]
+                    ),
+                ],
             ]
         );
 
@@ -280,7 +276,7 @@ class ControllerBoilerplateSchema
 
     public static function getFilesFromMultipart(): array
     {
-        $stmts = [];
+        $stmts   = [];
         $stmts[] = new Expression(
             new Assign(
                 new Variable('files'),
@@ -301,7 +297,7 @@ class ControllerBoilerplateSchema
                     new New_(new Name('\Webpractik\Bitrixgen\Http\Normalizer\BitrixFileNormalizer')),
                     'normalize',
                     [
-                        new Arg(new Variable('files'))
+                        new Arg(new Variable('files')),
                     ]
                 )
             )
@@ -312,7 +308,7 @@ class ControllerBoilerplateSchema
 
     public static function getFilesAsEmptyArray(): array
     {
-        $stmts = [];
+        $stmts   = [];
         $stmts[] = new Expression(
             new Assign(
                 new Variable('normalizedFiles'),
@@ -337,7 +333,6 @@ class ControllerBoilerplateSchema
                 )
             )
         );
-
 
         return $stmts;
     }

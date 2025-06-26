@@ -4,6 +4,7 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
 use PhpParser\ParserFactory;
+
 use const DIRECTORY_SEPARATOR;
 
 /**
@@ -36,9 +37,9 @@ use Bitrix\Main\Engine\Response\AjaxJson;
 class $className extends Controller
 {
     protected const RECURSION_DEPTH_LIMIT = 20;
-    
+
     protected ?Throwable \$lastException = null;
-    
+
     protected function getDefaultPreFilters(): array
     {
         return [];
@@ -49,21 +50,21 @@ class $className extends Controller
         if (!(\$response instanceof AjaxJson)) {
             return;
         }
-    
+
         if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
             return;
         }
-    
+
         \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
         \$response->copyHeadersTo(\$errorJsonResponse);
         \$response->setStatus(\$errorJsonResponse->getStatus());
         \$response->setContent(\$errorJsonResponse->getContent());
     }
-    
+
     protected function runProcessingThrowable(Throwable \$throwable)
     {
         \$this->lastException = \$throwable;
-    
+
         parent::runProcessingThrowable(\$throwable);
     }
 
@@ -136,7 +137,7 @@ class $className extends Controller
 PHP;
 
         $parser = (new ParserFactory())->createForHostVersion();
-        $ast = $parser->parse($code);
+        $ast    = $parser->parse($code);
 
         $namespaceNode = reset($ast);
 

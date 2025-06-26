@@ -4,7 +4,6 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 use Http\Discovery\Psr17FactoryDiscovery;
 use Jane\Component\JsonSchema\Generator\Context\Context;
-use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Registry\Schema;
 use Jane\Component\JsonSchema\Registry\Schema as BaseSchema;
 use PhpParser\Modifiers;
@@ -17,6 +16,7 @@ use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Serializer\Encoder\JsonEncode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
+
 trait ControllersGenerator
 {
     abstract protected function getHttpClientCreateExpr(Context $context): array;
@@ -43,9 +43,9 @@ trait ControllersGenerator
 
         return new Stmt\ClassMethod(
             'create', [
-                'flags' => Modifiers::STATIC | Modifiers::PUBLIC,
+                'flags'  => Modifiers::STATIC | Modifiers::PUBLIC,
                 'params' => $params,
-                'stmts' => [
+                'stmts'  => [
                     new Stmt\If_(
                         new Expr\BinaryOp\Identical(new Expr\ConstFetch(new Name('null')), new Expr\Variable('httpClient')),
                         [
