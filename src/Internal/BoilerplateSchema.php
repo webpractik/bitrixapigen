@@ -375,7 +375,7 @@ class BoilerplateSchema
      */
     private static function getModuleVersion(): string
     {
-        $packageFilename    = getcwd() . '/composer.json';
+        $packageFilename    = dirname(__DIR__, 2) . '/composer.json';
         $packageSettingsRaw = file_get_contents($packageFilename);
         $packageSettings    = json_decode($packageSettingsRaw, true, 512, JSON_THROW_ON_ERROR);
 
@@ -384,7 +384,7 @@ class BoilerplateSchema
 
     private static function getModuleVersionDate(): string
     {
-        $packageFilename  = getcwd() . '/composer.json';
+        $packageFilename  = dirname(__DIR__, 2) . '/composer.json';
         $modificationTime = filemtime($packageFilename);
 
         return date('Y-m-d', $modificationTime);
