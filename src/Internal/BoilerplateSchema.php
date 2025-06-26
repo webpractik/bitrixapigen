@@ -2,6 +2,7 @@
 
 namespace Webpractik\Bitrixapigen\Internal;
 
+use JsonException;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
@@ -184,6 +185,9 @@ class BoilerplateSchema
         ]));
     }
 
+    /**
+     * @throws JsonException
+     */
     public static function getInstallFileBody(): Stmt\Class_
     {
         return new Stmt\Class_(
@@ -366,11 +370,14 @@ class BoilerplateSchema
         );
     }
 
+    /**
+     * @throws JsonException
+     */
     private static function getModuleVersion(): string
     {
         $packageFilename    = getcwd() . '/composer.json';
         $packageSettingsRaw = file_get_contents($packageFilename);
-        $packageSettings    = json_decode($packageSettingsRaw, true);
+        $packageSettings    = json_decode($packageSettingsRaw, true, 512, JSON_THROW_ON_ERROR);
 
         return $packageSettings['version'];
     }
