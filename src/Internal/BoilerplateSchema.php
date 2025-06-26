@@ -276,7 +276,7 @@ class BoilerplateSchema
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_DESCRIPTION'),
                                         ),
-                                        new Scalar\String_('Модуль генерации серверной части по OA файлу')
+                                        new Scalar\String_('Модуль серверной части, сгенерированной по OA файлу')
                                     )
                                 ),
                                 new Stmt\Expression(
