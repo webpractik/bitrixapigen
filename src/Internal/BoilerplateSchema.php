@@ -240,7 +240,7 @@ class BoilerplateSchema
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_VERSION'),
                                         ),
-                                        new Scalar\String_('1.0.0')
+                                        new Scalar\String_(self::getModuleVersion())
                                     )
                                 ),
                                 new Stmt\Expression(
@@ -362,6 +362,15 @@ class BoilerplateSchema
                 ]
             ]
         );
+    }
+
+    private static function getModuleVersion(): string
+    {
+        $packageFilename = getcwd() . '/composer.json';
+        $packageSettingsRaw = file_get_contents($packageFilename);
+        $packageSettings = json_decode($packageSettingsRaw, true);
+
+        return $packageSettings['version'];
     }
 
     private static function getModuleVersionDate(): string
