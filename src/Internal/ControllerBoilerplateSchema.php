@@ -7,6 +7,7 @@ use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -76,7 +77,7 @@ class ControllerBoilerplateSchema
                 );
                 $dtoTypeName = str_replace('?', '', $typeName);
                 $dtoNameResolver = DtoNameResolver::createByModelFullName($dtoTypeName);
-                $stmts = array_merge($stmts, self::getDtoResolver($stmts, $dtoNameResolver->getDtoFullClassName()));
+                $stmts = array_merge($stmts, self::getDataToDtoConverter($stmts, $dtoNameResolver->getDtoFullClassName()));
 
                 if($operationWrapped->isMultipartFormData()) {
                     $stmtsGetData = array_merge($stmtsGetData, self::getFilesFromMultipart());
@@ -341,25 +342,29 @@ class ControllerBoilerplateSchema
         return $stmts;
     }
 
-    public static function getDtoResolver($stmts, $dtoPath)
+    public static function getDataToDtoConverter($stmts, $dtoPath)
     {
         $stmts[] = new Expression(
             new Assign(
-                new Variable("dto"),
-                new New_(
-                    new FullyQualified($dtoPath)
+                new Variable('dtoClass'),
+                new ClassConstFetch(
+                    new FullyQualified($dtoPath),
+                    'class'
                 )
             )
         );
         $stmts[] = new Expression(
-            new MethodCall(
-                new Variable('this'),
-                'initializeDto',
-                [
-                    new Variable('dto'),
-                    new Variable('requestBody'),
-                    new Variable('normalizedFiles'),
-                ]
+            new Assign(
+                new Variable('dto'),
+                new MethodCall(
+                    new Variable('this'),
+                    'convertDataToDto',
+                    [
+                        new Variable('dtoClass'),
+                        new Variable('requestBody'),
+                        new Variable('normalizedFiles'),
+                    ]
+                )
             )
         );
 
