@@ -68,7 +68,6 @@ class ModelGenerator extends BaseModelGenerator
 
         foreach ($schema->getClasses() as $class) {
             $dtoNameResolver = DtoNameResolver::createByModelName($class->getName());
-            // $schema->addFile(new File($schema->getDirectory() . '/Dto/' . $dtoNameResolver->getDtoClassName() . '.php', $namespaceStmt, self::FILE_TYPE_MODEL));
 
             $collectionClassName = $dtoNameResolver->getCollectionClassName();
             $collection = $this->createCollectionClass($class, $schema);
@@ -76,7 +75,6 @@ class ModelGenerator extends BaseModelGenerator
 
             $schema->addFile(new File($collectionPath, $collection, 'collection'));
 
-            //by Sline-X
             $readonlyDtoClassName = $class->getName();
             $readonlyDtoCollection = $this->createReadonlyDtoClass($class, $schema);
             $readonlyDtoCollectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
@@ -175,8 +173,6 @@ EOD
         $paramsObjects = [];
 
         foreach ($class->getLocalProperties() as $property) {
-            //new Assign($variable, $value)
-
             $type = new Identifier($property->getType()->getName());
             if ($property->isNullable()) {
                 $type = new NullableType($type);
