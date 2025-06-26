@@ -249,7 +249,7 @@ class BoilerplateSchema
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_VERSION_DATE'),
                                         ),
-                                        new Scalar\String_('2024-12-19')
+                                        new Scalar\String_(self::getModuleVersionDate())
                                     )
                                 ),
                                 new Stmt\Expression(
@@ -362,5 +362,13 @@ class BoilerplateSchema
                 ]
             ]
         );
+    }
+
+    private static function getModuleVersionDate(): string
+    {
+        $packageFilename = getcwd() . '/composer.json';
+        $modificationTime = filemtime($packageFilename);
+
+        return date('Y-m-d', $modificationTime);
     }
 }
