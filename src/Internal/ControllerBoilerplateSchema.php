@@ -7,6 +7,7 @@ use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -346,8 +347,9 @@ class ControllerBoilerplateSchema
         $stmts[] = new Expression(
             new Assign(
                 new Variable('dtoClass'),
-                new String_(
-                    new FullyQualified($dtoPath)
+                new ClassConstFetch(
+                    new FullyQualified($dtoPath),
+                    'class'
                 )
             )
         );
