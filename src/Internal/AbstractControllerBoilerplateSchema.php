@@ -71,20 +71,21 @@ class $className extends Controller
     {
         \$this->checkRecursionLimit(\$depth);
 
+        \$dtoClass = \$collection->getItemType();
         foreach (\$data as \$item) {
-            \$dtoObject = new (\$collection->getItemType())();
-            \$this->initializeDto(\$dtoObject, \$item, \$files);
+            \$dtoObject = \$this->convertDataToDto(\$dtoClass, \$item, \$files);
             \$collection->add(\$dtoObject);
         }
     }
 
-    // Рекурсивная функция для обработки вложенных DTO и массивов DTO
-    protected function initializeDto(AbstractDto \$dto, array \$data, array \$files, int \$depth = 0): void
+    protected function convertDataToDto(string \$dtoClass, array \$data, array \$files, int \$depth = 0)
     {
         \$this->checkRecursionLimit(\$depth);
 
-        \$reflectionClass = new ReflectionClass(get_class(\$dto));
+        \$reflectionClass = new ReflectionClass(\$dtoClass);
         \$properties = \$reflectionClass->getProperties(ReflectionProperty::IS_PUBLIC);
+
+        \$dtoArguments = [];
 
         foreach (\$properties as \$property) {
             \$propertyName = \$property->getName();
@@ -95,22 +96,24 @@ class $className extends Controller
                 if (\$this->isCollection(\$property->getType()->getName())) {
                     \$collection = new (\$property->getType()->getName())();
                     \$this->initializeDtoCollection(\$collection, \$value, \$files, \$depth);
-                    \$dto->{\$propertyName} = \$collection;
+                    \$dtoArguments[\$propertyName] = \$collection;
                 } elseif (\$this->isDto(\$property->getType()->getName())) {
-                    \$dtoObject = new (\$property->getType()->getName())();
-                    \$this->initializeDto(\$dtoObject, \$value, \$files, \$depth); // Рекурсивно инициализируем DTO
-                    \$dto->{\$propertyName} = \$dtoObject;
+                    \$dtoClass = \$property->getType()->getName();
+                    \$dtoObject = \$this->convertDataToDto(\$dtoClass, \$value, \$files, \$depth);
+                    \$dtoArguments[\$propertyName] = \$dtoObject;
                 } elseif(is_a(\$property->getType()->getName(), UploadedFileCollection::class, true)) {
-                    \$dto->{\$propertyName} = \$files[\$propertyName] ?? null;
+                    \$dtoArguments[\$propertyName] = \$files[\$propertyName] ?? null;
                 } elseif(is_a(\$property->getType()->getName(), UploadedFileInterface::class, true)) {
-                    \$dto->{\$propertyName} = \$files[\$propertyName] ?? null;
+                    \$dtoArguments[\$propertyName] = \$files[\$propertyName] ?? null;
                 } elseif (\$property->getType()->getName() === 'DateTime') {
-                    \$dto->{\$propertyName} = DateTime::createFromFormat(DATE_ATOM, \$value);
+                    \$dtoArguments[\$propertyName] = DateTime::createFromFormat(DATE_ATOM, \$value);
                 } else {
-                    \$dto->{\$propertyName} = \$value;
+                    \$dtoArguments[\$propertyName] = \$value;
                 }
             }
         }
+
+        return \$reflectionClass->newInstanceArgs(\$dtoArguments);
     }
 
     protected function isDto(string \$typeName): bool
