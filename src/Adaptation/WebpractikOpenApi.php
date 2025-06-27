@@ -4,7 +4,6 @@ namespace Webpractik\Bitrixapigen\Adaptation;
 
 use Generator;
 use Jane\Component\JsonSchema\Generator\Naming;
-use Jane\Component\OpenApi3\Guesser\OpenApiSchema\GuesserFactory;
 use Jane\Component\OpenApi3\JsonSchema\Normalizer\JaneObjectNormalizer;
 use Jane\Component\OpenApi3\SchemaParser\SchemaParser;
 use Jane\Component\OpenApi3\WhitelistedSchema;
