@@ -23,10 +23,10 @@ class SchemaGuesser extends JaneSchemaGuesser
         $nameParts = [];
         $isMultiFileSchema = preg_match('/Response\d{3}(?<tail>.*)/', $name, $nameParts);
         $referenceParts = [];
-        $isReferenceParsed = preg_match('~/?(?<fileName>[^/.]+).(json|ya?ml)#.*/(?<schemaName>[^/]+)$~', $reference, $referenceParts);
+        $isReferenceParsed = preg_match('~/?(?<fileName>[^/.]+).(json|ya?ml)#(?<basePath>.*/)(?<name>[^/]+)$~', $reference, $referenceParts);
         if ($isMultiFileSchema && $isReferenceParsed) {
-            $isNestedSchema = $nameParts['tail'] && $nameParts['tail'] !== $referenceParts['schemaName'];
-            $schemaName = $isNestedSchema ? $nameParts['tail'] : $referenceParts['schemaName'];
+            $isNestedSchema = substr_count($referenceParts['basePath'], '/') > 1;
+            $schemaName = $isNestedSchema ? $nameParts['tail'] : $referenceParts['name'];
 
             return ucfirst($referenceParts['fileName']) . ucfirst($schemaName);
         }
