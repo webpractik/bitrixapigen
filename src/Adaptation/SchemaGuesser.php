@@ -20,11 +20,15 @@ class SchemaGuesser extends JaneSchemaGuesser
 
     private function getBetterName($reference, $name): string
     {
-        $isMultiFileSchema = preg_match('/Response\d{3}$/', $name);
+        $nameParts = [];
+        $isMultiFileSchema = preg_match('/Response\d{3}(?<tail>.*)/', $name, $nameParts);
         $referenceParts = [];
         $isReferenceParsed = preg_match('~/?(?<fileName>[^/.]+).(json|ya?ml)#.*/(?<schemaName>[^/]+)$~', $reference, $referenceParts);
         if ($isMultiFileSchema && $isReferenceParsed) {
-            return ucfirst($referenceParts['fileName']) . ucfirst($referenceParts['schemaName']);
+            $isNestedSchema = $nameParts['tail'] && $nameParts['tail'] !== $referenceParts['schemaName'];
+            $schemaName = $isNestedSchema ? $nameParts['tail'] : $referenceParts['schemaName'];
+
+            return ucfirst($referenceParts['fileName']) . ucfirst($schemaName);
         }
 
         return $name;
