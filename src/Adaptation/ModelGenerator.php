@@ -6,6 +6,7 @@ use Jane\Component\JsonSchema\Generator\Context\Context;
 use Jane\Component\JsonSchema\Generator\File;
 use Jane\Component\JsonSchema\Generator\ModelGenerator as BaseModelGenerator;
 use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess as BaseClassGuess;
+use Jane\Component\JsonSchema\Guesser\Guess\ObjectType;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
 use Jane\Component\JsonSchema\Registry\Schema;
 use Jane\Component\OpenApiCommon\Generator\Model\ClassGenerator;
@@ -13,6 +14,7 @@ use Jane\Component\OpenApiCommon\Guesser\Guess\ClassGuess;
 use Jane\Component\OpenApiCommon\Guesser\Guess\ParentClass;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
+use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
@@ -176,13 +178,9 @@ EOD
         $paramsObjects = [];
 
         foreach ($class->getLocalProperties() as $property) {
-            $type = new Identifier($property->getType()->getName());
-            if ($property->isNullable()) {
-                $type = new NullableType($type);
-            }
             $paramsObjects[] = new Param(
                 var: new Variable($property->getName()),
-                type: $type,
+                type: $this->getDtoPropertyParameterType($property),
                 flags: Modifiers::PUBLIC | Modifiers::READONLY);
         }
 
@@ -200,5 +198,20 @@ EOD
             new Name($schema->getNamespace() . '\\Dto'),
             [$classNode]
         );
+    }
+
+    private function getDtoPropertyParameterType(Property $property): Node
+    {
+        $propertyType = $property->getType();
+
+        $type = new Identifier($propertyType->getName());
+        if ($propertyType instanceof ObjectType) {
+            $type = new Identifier($propertyType->getClassName() . 'Dto');
+        }
+        if ($property->isNullable()) {
+            $type = new NullableType($type);
+        }
+
+        return $type;
     }
 }
