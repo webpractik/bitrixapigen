@@ -1,6 +1,6 @@
 {
     "name": "webpractik/bitrixapigen",
-    "version": "2.2.1",
+    "version": "2.3.0",
     "autoload": {
         "psr-4": {
             "Webpractik\\Bitrixapigen\\": "src/"
@@ -12,8 +12,7 @@
             "email": "pk@webpractik.ru"
         }
     ],
-    "require-dev": {
-    },
+    "require-dev": {},
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
