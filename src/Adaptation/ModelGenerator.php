@@ -153,7 +153,7 @@ EOD
         foreach ($class->getLocalProperties() as $property) {
             $paramsObjects[] = new Param(
                 var: new Variable($property->getName()),
-                type: $this->getDtoPropertyParameterType($property),
+                type: $this->getDtoPropertyParameterType($property, $schema),
                 flags: Modifiers::PUBLIC | Modifiers::READONLY);
         }
 
