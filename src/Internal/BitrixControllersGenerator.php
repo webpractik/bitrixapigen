@@ -94,6 +94,8 @@ class BitrixControllersGenerator implements GeneratorInterface
             $client              = $this->createResourceClass($schema, $controllerClassName);
             $useStmts            = [
                 new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\Exception\BitrixFormatException'))]),
+                new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\ModuleContext'))]),
+                new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\Validator\ValidatorFactory'))]),
                 new Stmt\Use_([new Stmt\UseUse(new Name('Throwable'))]),
             ];
             $useStmts[]          = $client;

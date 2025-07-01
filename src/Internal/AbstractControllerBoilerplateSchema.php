@@ -25,6 +25,7 @@ use Psr\Http\Message\UploadedFileInterface;
 use ReflectionClass;
 use ReflectionProperty;
 use RuntimeException;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Webpractik\Bitrixgen\Dto\AbstractDto;
 use Webpractik\Bitrixgen\Dto\Collection\AbstractDtoCollection;
 use DateTime;
@@ -33,9 +34,13 @@ use Webpractik\Bitrixgen\Dto\Collection\Files\UploadedFileCollection;
 use Webpractik\Bitrixgen\Exception\BitrixFormatException;
 use Webpractik\Bitrixgen\Response\JsonResponse;
 use Bitrix\Main\Engine\Response\AjaxJson;
+use Webpractik\Bitrixgen\Runtime\Normalizer\ValidationException;
+use Webpractik\Bitrixgen\Validator\ValidatorTrait;
 
 class $className extends Controller
 {
+    use ValidatorTrait;
+
     protected const RECURSION_DEPTH_LIMIT = 20;
 
     protected ?Throwable \$lastException = null;
@@ -47,18 +52,39 @@ class $className extends Controller
 
     public function finalizeResponse(Response \$response): void
     {
-        if (!(\$response instanceof AjaxJson)) {
-            return;
-        }
+        try {
+            if (!(\$response instanceof AjaxJson)) {
+                return;
+            }
 
-        if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
-            return;
-        }
+            if (\$this->lastException === null || \$this->lastException instanceof BitrixFormatException) {
+                return;
+            }
 
-        \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
-        \$response->copyHeadersTo(\$errorJsonResponse);
-        \$response->setStatus(\$errorJsonResponse->getStatus());
-        \$response->setContent(\$errorJsonResponse->getContent());
+            if (\$this->lastException instanceof ValidationException) {
+                \$violations = \$this->lastException->getViolationList();
+
+                \$errors = [];
+
+                /** @var ConstraintViolationInterface \$violation */
+                foreach (\$violations as \$violation) {
+                    \$errors[] = [
+                        'field' => \$violation->getPropertyPath(),
+                        'message' => \$violation->getMessage(),
+                    ];
+                }
+
+                \$errorJsonResponse = JsonResponse::errorValidation('Валидация не пройдена', \$errors); // HTTP 422 Unprocessable Entity
+            } else {
+                \$errorJsonResponse = JsonResponse::fromException(\$this->lastException);
+            }
+
+            \$response->copyHeadersTo(\$errorJsonResponse);
+            \$response->setStatus(\$errorJsonResponse->getStatus());
+            \$response->setContent(\$errorJsonResponse->getContent());
+        } finally {
+            \$this->lastException = null;
+        }
     }
 
     protected function runProcessingThrowable(Throwable \$throwable)
