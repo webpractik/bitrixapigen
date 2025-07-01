@@ -2,4 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.4.0](https://github.com/webpractik/bitrixapigen/compare/v2.3.0...v2.4.0) (2025-07-01)
+
+
+### Features
+
+* **collections:** улучшено именование коллекций ([a8dab5c](https://github.com/webpractik/bitrixapigen/commit/a8dab5ca4348e2afd2fea452567d3c246c7e45f6))
+* **dto:** заменены массивы на коллекции в DTO ([73654b0](https://github.com/webpractik/bitrixapigen/commit/73654b07d87e7a0e4347728fdd17e5dfbe4eec58))
+* **validation:** реализована валидация массива (в т.ч. массива объектов) в requestBody application/json ([f585b23](https://github.com/webpractik/bitrixapigen/commit/f585b234ede6fc7b4b7181f29d667421fd55bf4b))
+* **validation:** реализована валидация свойств типа массив объектов ([d3e3d2b](https://github.com/webpractik/bitrixapigen/commit/d3e3d2bf8d7605d38f0006298523b26f8be93e9e))
+* валидация ([342b0f0](https://github.com/webpractik/bitrixapigen/commit/342b0f0bc5c4b48c237f4fba663b7efb90b20dad))
+
+
+### Bug Fixes
+
+*  удален ненужный файл, случайно добавленный под гит ([452a868](https://github.com/webpractik/bitrixapigen/commit/452a86840e835b00ce8f93183aba755b7474f9e9))
+* добавил в composer пакет symfony/translation после мержа master ([b036725](https://github.com/webpractik/bitrixapigen/commit/b0367255888e57bc761ce0090ebc1cea691b1239))
+
 ## [2.3.0](https://github.com/webpractik/bitrixapigen/compare/v2.1.1...v2.3.0) (2025-06-30)
