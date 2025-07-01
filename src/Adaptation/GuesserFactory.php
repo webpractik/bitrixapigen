@@ -19,6 +19,8 @@ use Jane\Component\OpenApiCommon\Guesser\OpenApiSchema\ItemsGuesser;
 use Jane\Component\OpenApiCommon\Guesser\OpenApiSchema\MultipleGuesser;
 use Jane\Component\OpenApiCommon\Guesser\OpenApiSchema\SimpleTypeGuesser;
 use Symfony\Component\Serializer\SerializerInterface;
+use Webpractik\Bitrixapigen\Adaptation\Guessers\ReferenceGuesser;
+use Webpractik\Bitrixapigen\Adaptation\Guessers\SchemaGuesser;
 
 class GuesserFactory
 {

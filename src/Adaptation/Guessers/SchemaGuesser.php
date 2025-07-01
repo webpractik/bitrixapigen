@@ -1,6 +1,6 @@
 <?php
 
-namespace Webpractik\Bitrixapigen\Adaptation;
+namespace Webpractik\Bitrixapigen\Adaptation\Guessers;
 
 use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess as BaseClassGuess;
 use Jane\Component\OpenApi3\Guesser\OpenApiSchema\SchemaGuesser as JaneSchemaGuesser;

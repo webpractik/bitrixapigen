@@ -1,6 +1,6 @@
 <?php
 
-namespace Webpractik\Bitrixapigen\Adaptation;
+namespace Webpractik\Bitrixapigen\Adaptation\Guessers;
 
 use Jane\Component\JsonSchema\Registry\Registry;
 use Jane\Component\JsonSchemaRuntime\Reference;
