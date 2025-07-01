@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.4.3](https://github.com/webpractik/bitrixapigen/compare/v2.4.2...v2.4.3) (2025-07-01)
+
+
+### Bug Fixes
+
+* **generators:** возвращено использование переопределённой фабрики генераторов ([eb974c9](https://github.com/webpractik/bitrixapigen/commit/eb974c9c64a4bf4e1d220cd6c7c153c2d61da22a))
+
 ## [2.4.2](https://github.com/webpractik/bitrixapigen/compare/v2.4.1...v2.4.2) (2025-07-01)
 
 
