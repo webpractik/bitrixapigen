@@ -5,10 +5,12 @@ namespace Webpractik\Bitrixapigen\Adaptation;
 use Jane\Component\JsonSchema\Generator\Context\Context;
 use Jane\Component\JsonSchema\Generator\File;
 use Jane\Component\JsonSchema\Generator\ModelGenerator as BaseModelGenerator;
+use Jane\Component\JsonSchema\Guesser\Guess\ArrayType;
 use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess as BaseClassGuess;
 use Jane\Component\JsonSchema\Guesser\Guess\ObjectType;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
 use Jane\Component\JsonSchema\Registry\Schema;
+use Jane\Component\JsonSchemaRuntime\Reference;
 use Jane\Component\OpenApiCommon\Generator\Model\ClassGenerator;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
@@ -169,13 +171,23 @@ EOD
         );
     }
 
-    private function getDtoPropertyParameterType(Property $property): Node
+    private function getDtoPropertyParameterType(Property $property, Schema $schema): Node
     {
         $propertyType = $property->getType();
+        $object       = $property->getObject();
 
         $type = new Identifier($propertyType->getName());
         if ($propertyType instanceof ObjectType) {
             $type = new Identifier($propertyType->getClassName() . 'Dto');
+        }
+        if ($propertyType instanceof ArrayType && $object instanceof Reference) {
+            $class = $schema->getClass($object->getMergedUri());
+            if ($class) {
+                $baseName        = BetterNaming::getClassName($class->getReference(), $class->getName());
+                $modelClassName  = $this->getNaming()->getClassName($baseName);
+                $dtoNameResolver = DtoNameResolver::createByModelName($modelClassName);
+                $type            = new Identifier($dtoNameResolver->getCollectionFullClassName());
+            }
         }
         if ($property->isNullable()) {
             $type = new NullableType($type);
