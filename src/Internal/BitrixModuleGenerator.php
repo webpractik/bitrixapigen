@@ -13,6 +13,5 @@ class BitrixModuleGenerator
             touch($d . 'include.php');
             file_put_contents($d . 'include.php', ' ', FILE_APPEND);
         }
-
     }
 }

@@ -2,15 +2,16 @@
 
 namespace Webpractik\Bitrixapigen\Internal;
 
+use JsonException;
 use PhpParser\Modifiers;
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Param;
-use PhpParser\Node\Stmt;
 use PhpParser\Node\Scalar;
+use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Use_;
-use PhpParser\Node\Expr;
 
 class BoilerplateSchema
 {
@@ -23,8 +24,8 @@ class BoilerplateSchema
                     new Identifier("has"),
                     [
                         new Node\Arg(
-                            new Scalar\String_("webpractik.bitrixgen.".$operation)
-                        )
+                            new Scalar\String_("webpractik.bitrixgen." . $operation)
+                        ),
                     ]
                 )
             ),
@@ -34,25 +35,26 @@ class BoilerplateSchema
                         new Expr\Assign(
                             new Expr\ArrayDimFetch(
                                 new Expr\Variable("serviceValue"),
-                                new Scalar\String_("webpractik.bitrixgen.".$operation)
+                                new Scalar\String_("webpractik.bitrixgen." . $operation)
                             ),
                             new Expr\Array_(
                                 [
                                     new Node\ArrayItem(
                                         new Expr\ClassConstFetch(
-                                            new Name\FullyQualified("Webpractik\Bitrixgen\UseCase\\".ucfirst($operation)),
+                                            new Name\FullyQualified("Webpractik\Bitrixgen\UseCase\\" . ucfirst($operation)),
                                             new Identifier("class")
                                         ),
                                         new Scalar\String_("className"),
-                                    )
+                                    ),
                                 ]
                             )
                         )
-                    )
-                ]
+                    ),
+                ],
             ]
         );
     }
+
     public static function getFirstOpIfForSettings($operation): Stmt\If_
     {
         return new Stmt\If_(
@@ -61,8 +63,8 @@ class BoilerplateSchema
                 new Identifier("has"),
                 [
                     new Node\Arg(
-                        new Scalar\String_("webpractik.bitrixgen.".$operation)
-                    )
+                        new Scalar\String_("webpractik.bitrixgen." . $operation)
+                    ),
                 ]
             ),
             [
@@ -74,7 +76,7 @@ class BoilerplateSchema
                                 ,
                                 [
                                     new Node\Arg(
-                                        new Scalar\String_("\Webpractik\Bitrixgen\UseCase\I".ucfirst($operation))
+                                        new Scalar\String_("\Webpractik\Bitrixgen\UseCase\I" . ucfirst($operation))
                                     ),
                                     new Node\Arg(
                                         new Expr\FuncCall(
@@ -86,14 +88,14 @@ class BoilerplateSchema
                                                         new Identifier("get"),
                                                         [
                                                             new Node\Arg(
-                                                                new Scalar\String_("webpractik.bitrixgen.".$operation)
-                                                            )
+                                                                new Scalar\String_("webpractik.bitrixgen." . $operation)
+                                                            ),
                                                         ]
                                                     )
-                                                )
+                                                ),
                                             ]
                                         )
-                                    )
+                                    ),
                                 ]
                             )
                         ),
@@ -103,24 +105,24 @@ class BoilerplateSchema
                                     new Expr\Assign(
                                         new Expr\ArrayDimFetch(
                                             new Expr\Variable("serviceValue"),
-                                            new Scalar\String_("webpractik.bitrixgen.".$operation)
+                                            new Scalar\String_("webpractik.bitrixgen." . $operation)
                                         ),
                                         new Expr\Array_(
                                             [
                                                 new Node\ArrayItem(
                                                     new Expr\ClassConstFetch(
-                                                        new Name\FullyQualified("Webpractik\Bitrixgen\UseCase\\".ucfirst($operation)),
+                                                        new Name\FullyQualified("Webpractik\Bitrixgen\UseCase\\" . ucfirst($operation)),
                                                         new Identifier("class")
                                                     )
-                                                )
+                                                ),
                                             ]
                                         )
                                     )
-                                )
-                            ]
+                                ),
+                            ],
                         ]
-                    )
-                ]
+                    ),
+                ],
             ]
         );
     }
@@ -131,7 +133,7 @@ class BoilerplateSchema
             [
                 new Node\UseItem(
                     new Name($path)
-                )
+                ),
             ]
         );
     }
@@ -160,7 +162,7 @@ class BoilerplateSchema
                                 ),
                             ]
                         )
-                    )
+                    ),
                 ]
             )
         );
@@ -170,28 +172,32 @@ class BoilerplateSchema
     {
         return new Stmt\Return_(new Expr\Closure([
             'attrGroups' => [],
-            'static' => true,
-            'byRef' => false,
-            'params' => [new Param(
-                new Expr\Variable('configurator'), null, new Name('RoutingConfigurator'),
-                false, false, [], 0)
+            'static'     => true,
+            'byRef'      => false,
+            'params'     => [
+                new Param(
+                    new Expr\Variable('configurator'), null, new Name('RoutingConfigurator'),
+                    false, false, [], 0),
             ],
-            'uses' => [],
+            'uses'       => [],
             'returnType' => null,
-            'stmts' => []
+            'stmts'      => [],
         ]));
     }
 
+    /**
+     * @throws JsonException
+     */
     public static function getInstallFileBody(): Stmt\Class_
     {
         return new Stmt\Class_(
             new Node\Identifier('webpractik_bitrixgen'),
             [
                 'attrGroups' => [],
-                'flags' => 0,
-                'extends' => new Name('CModule'),
+                'flags'      => 0,
+                'extends'    => new Name('CModule'),
                 'implements' => [],
-                'stmts' => [
+                'stmts'      => [
                     new Stmt\Property(
                         Modifiers::PUBLIC,
                         [new Stmt\PropertyProperty('MODULE_ID')]
@@ -229,18 +235,18 @@ class BoilerplateSchema
                         new Node\Identifier('__construct'),
                         [
                             'attrGroups' => [],
-                            'flags' => 1,
-                            'byRef' => false,
-                            'params' => [],
+                            'flags'      => 1,
+                            'byRef'      => false,
+                            'params'     => [],
                             'returnType' => null,
-                            'stmts' => [
+                            'stmts'      => [
                                 new Stmt\Expression(
                                     new Expr\Assign(
                                         new Expr\PropertyFetch(
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_VERSION'),
                                         ),
-                                        new Scalar\String_('1.0.0')
+                                        new Scalar\String_(self::getModuleVersion())
                                     )
                                 ),
                                 new Stmt\Expression(
@@ -249,7 +255,7 @@ class BoilerplateSchema
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_VERSION_DATE'),
                                         ),
-                                        new Scalar\String_('2024-12-19')
+                                        new Scalar\String_(self::getModuleVersionDate())
                                     )
                                 ),
                                 new Stmt\Expression(
@@ -276,7 +282,7 @@ class BoilerplateSchema
                                             new Expr\Variable('this'),
                                             new Node\Identifier('MODULE_DESCRIPTION'),
                                         ),
-                                        new Scalar\String_('Модуль генерации серверной части по OA файлу')
+                                        new Scalar\String_('Модуль серверной части, сгенерированной по OA файлу')
                                     )
                                 ),
                                 new Stmt\Expression(
@@ -306,18 +312,18 @@ class BoilerplateSchema
                                         new Scalar\String_('https://webpractik.ru')
                                     )
                                 ),
-                            ]
+                            ],
                         ]
                     ),
                     new Stmt\ClassMethod(
                         new Node\Identifier('doInstall'),
                         [
                             'attrGroups' => [],
-                            'flags' => 1,
-                            'byRef' => false,
-                            'params' => [],
+                            'flags'      => 1,
+                            'byRef'      => false,
+                            'params'     => [],
                             'returnType' => new Node\Identifier('void'),
-                            'stmts' => [
+                            'stmts'      => [
                                 new Stmt\Expression(
                                     new Expr\FuncCall(
                                         new Name('RegisterModule'),
@@ -327,22 +333,22 @@ class BoilerplateSchema
                                                     new Expr\Variable('this'),
                                                     new Node\Identifier('MODULE_ID'),
                                                 )
-                                            )
+                                            ),
                                         ]
                                     )
                                 ),
-                            ]
+                            ],
                         ]
                     ),
                     new Stmt\ClassMethod(
                         new Node\Identifier('doUninstall'),
                         [
                             'attrGroups' => [],
-                            'flags' => 1,
-                            'byRef' => false,
-                            'params' => [],
+                            'flags'      => 1,
+                            'byRef'      => false,
+                            'params'     => [],
                             'returnType' => new Node\Identifier('void'),
-                            'stmts' => [
+                            'stmts'      => [
                                 new Stmt\Expression(
                                     new Expr\FuncCall(
                                         new Name('UnRegisterModule'),
@@ -352,15 +358,35 @@ class BoilerplateSchema
                                                     new Expr\Variable('this'),
                                                     new Node\Identifier('MODULE_ID'),
                                                 )
-                                            )
+                                            ),
                                         ]
                                     )
                                 ),
-                            ]
+                            ],
                         ]
-                    )
-                ]
+                    ),
+                ],
             ]
         );
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private static function getModuleVersion(): string
+    {
+        $packageFilename    = dirname(__DIR__, 2) . '/composer.json';
+        $packageSettingsRaw = file_get_contents($packageFilename);
+        $packageSettings    = json_decode($packageSettingsRaw, true, 512, JSON_THROW_ON_ERROR);
+
+        return $packageSettings['version'];
+    }
+
+    private static function getModuleVersionDate(): string
+    {
+        $packageFilename  = dirname(__DIR__, 2) . '/composer.json';
+        $modificationTime = filemtime($packageFilename);
+
+        return date('Y-m-d', $modificationTime);
     }
 }

@@ -30,7 +30,7 @@ abstract class $className implements JsonSerializable
 PHP;
 
         $parser = (new ParserFactory())->createForHostVersion();
-        $ast = $parser->parse($code);
+        $ast    = $parser->parse($code);
 
         $namespaceNode = reset($ast);
 

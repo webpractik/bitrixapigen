@@ -4,8 +4,8 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
 use PhpParser\ParserFactory;
-use const DIRECTORY_SEPARATOR;
 
+use const DIRECTORY_SEPARATOR;
 
 class JsonResponseBoilerplateSchema
 {
@@ -13,7 +13,7 @@ class JsonResponseBoilerplateSchema
     {
         $className = 'JsonResponse';
         $namespace = 'Webpractik\\Bitrixgen\\Response';
-        $code = <<<PHP
+        $code      = <<<PHP
 <?php
 
 namespace $namespace;
@@ -56,7 +56,7 @@ class $className extends Json
 PHP;
 
         $parser = (new ParserFactory())->createForHostVersion();
-        $ast = $parser->parse($code);
+        $ast    = $parser->parse($code);
 
         $namespaceNode = reset($ast);
 

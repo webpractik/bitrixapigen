@@ -6,7 +6,9 @@ __Bitrixapigen__ — пакет для генерации серверной ч�
 
 ## ⚙️ Установка
 
-*composer require webpractik/bitrixapigen --dev*
+``` shell
+composer require webpractik/bitrixapigen --dev
+```
 
 ---
 

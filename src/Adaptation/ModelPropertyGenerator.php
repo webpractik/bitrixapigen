@@ -14,6 +14,9 @@ use PhpParser\Node\Stmt;
 use PhpParser\Parser;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
+use function is_array;
+use function is_scalar;
+
 trait ModelPropertyGenerator
 {
     /**
@@ -35,10 +38,11 @@ trait ModelPropertyGenerator
             $default = $property->getDefault();
         }
 
-        if ((null !== $default && \is_scalar($default)) || (Type::TYPE_ARRAY === $property->getType()->getTypeHint($namespace)?->toString() && \is_array($default))) {
+        if ((null !== $default && is_scalar($default)) || (Type::TYPE_ARRAY === $property->getType()->getTypeHint($namespace)?->toString() && is_array($default))) {
             $propertyStmt->default = $this->getDefaultAsExpr($default)->expr;
         }
         $type = $this->getPropertyType($property, $namespace, $strict);
+
         return new Stmt\Property(Modifiers::PUBLIC, [
             $propertyStmt,
         ], [
@@ -55,7 +59,7 @@ trait ModelPropertyGenerator
             $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
-            $docTypeHint = '\\'.DtoNameResolver::getCollectionNamespace() . '\\Files\\UploadedFileCollection';
+            $docTypeHint = '\\' . DtoNameResolver::getCollectionNamespace() . '\\Files\\UploadedFileCollection';
         } elseif ($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
             $docTypeHint = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $docTypeHint);
         } elseif (str_contains($docTypeHint, '\\Model\\')) {
@@ -100,11 +104,6 @@ EOD
         return new Doc($description);
     }
 
-    private function getDefaultAsExpr($value): Stmt\Expression
-    {
-        return $this->parser->parse('<?php ' . var_export($value, true) . ';')[0];
-    }
-
     protected function getPropertyType(Property $property, string $namespace, bool $strict): null|Identifier|Name
     {
         $phpType = $property->getType()->getTypeHint($namespace)?->toString();
@@ -113,16 +112,18 @@ EOD
             return null; // Если нет типа, оставляем без него
         }
 
-        if(($property->getObject() instanceof Schema) &&
-        $property->getObject()->getType() === 'array'
+        if (($property->getObject() instanceof Schema) &&
+            $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
             $phpType = '\\' . DtoNameResolver::getCollectionNamespace() . '\\Files\\UploadedFileCollection';
+
             return new Name($phpType);
         }
 
-        if($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
+        if ($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
             $phpType = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $phpType);
+
             return new Name($phpType);
         }
 
@@ -130,17 +131,16 @@ EOD
 
         $canBeNull = (!$strict || $property->isNullable()) && (strpos($docTypeHint, 'null') === false);
 
-
         // Простые скалярные типы
         $scalarTypes = ['string', 'int', 'float', 'bool', 'array'];
 
         if (in_array($phpType, $scalarTypes, true)) {
-            return new Identifier(($canBeNull ? '?' : '') .$phpType); // ✅ Возвращаем Identifier для скаляров
+            return new Identifier(($canBeNull ? '?' : '') . $phpType); // ✅ Возвращаем Identifier для скаляров
         }
 
         // Если это объект (например, \DateTime)
         if ($phpType === '\DateTime') {
-            return new Name(($canBeNull ? '?' : '') .$phpType);
+            return new Name(($canBeNull ? '?' : '') . $phpType);
         }
 
         if ($phpType === 'array' && str_contains($docTypeHint, '\\Model\\') && preg_match('#^list<\\\\Webpractik\\\\Bitrixgen\\\\Model\\\\([^>]+)>$#', $docTypeHint, $matches)) {
@@ -157,6 +157,11 @@ EOD
         }
 
         // Если это кастомный объект (например, Dto\Pet)
-        return new Name(($canBeNull ? '?' : '') .$phpType);
+        return new Name(($canBeNull ? '?' : '') . $phpType);
+    }
+
+    private function getDefaultAsExpr($value): Stmt\Expression
+    {
+        return $this->parser->parse('<?php ' . var_export($value, true) . ';')[0];
     }
 }

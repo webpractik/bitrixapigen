@@ -3,9 +3,9 @@
 namespace Webpractik\Bitrixapigen\Adaptation;
 
 use Jane\Component\JsonSchema\Generator\Context\Context;
+use Jane\Component\JsonSchema\Generator\File;
 use Jane\Component\OpenApiCommon\Generator\EndpointGeneratorInterface;
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
-use PhpParser\Comment;
 use PhpParser\Modifiers;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -13,14 +13,16 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
-use PhpParser\Node\UnionType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
-use Psr\Http\Message\ResponseInterface;
-use Jane\Component\JsonSchema\Generator\File;
+use PhpParser\Node\UnionType;
+use RuntimeException;
+use Throwable;
 use Webpractik\Bitrixapigen\Internal\ControllerBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 use Webpractik\Bitrixapigen\Internal\Wrappers\OperationWrapper;
+
+use function count;
 
 class OperationGenerator
 {
@@ -29,15 +31,6 @@ class OperationGenerator
     public function __construct(EndpointGeneratorInterface $endpointGenerator)
     {
         $this->endpointGenerator = $endpointGenerator;
-    }
-
-    protected function getReturnDoc(array $returnTypes, array $throwTypes): string
-    {
-        return implode('', array_map(function ($value) {
-                return ' * @throws ' . $value . "\n";
-            }, $throwTypes))
-               . " *\n"
-               . ' * @return ' . implode('|', $returnTypes);
     }
 
     public function createOperation(string $name, OperationGuess $operation, Context $context): Stmt\ClassMethod
@@ -52,7 +45,7 @@ class OperationGenerator
             $lastMethodParam = $param->var->name;
         }
 
-        $paramsPosition = $lastMethodParam === 'accept' ? \count($methodParams) - 1 : \count($methodParams);
+        $paramsPosition = $lastMethodParam === 'accept' ? count($methodParams) - 1 : count($methodParams);
         array_splice($methodParams, $paramsPosition, 0);
 
         $isOctetStreamFile = (new OperationWrapper($operation))->isOctetStreamFile();
@@ -80,8 +73,8 @@ class OperationGenerator
         $returnType = [];
 
         if (count($returnTypes) == 1) {
-            $v               = reset($returnTypes);
-            $returnType      = $this->getReturnType(v: $v, isSingleReturnType: true);
+            $v          = reset($returnTypes);
+            $returnType = $this->getReturnType(v: $v, isSingleReturnType: true);
         } else {
             foreach ($returnTypes as $v) {
                 $returnType[] = $this->getReturnType($v, isSingleReturnType: false);
@@ -143,7 +136,6 @@ class OperationGenerator
             );
         }
 
-
         return new File(
             $iPath,
             new Stmt\Namespace_(new Name("Webpractik\Bitrixgen\Interfaces"), [
@@ -172,6 +164,15 @@ class OperationGenerator
         );
     }
 
+    protected function getReturnDoc(array $returnTypes, array $throwTypes): string
+    {
+        return implode('', array_map(function ($value) {
+                return ' * @throws ' . $value . "\n";
+            }, $throwTypes))
+               . " *\n"
+               . ' * @return ' . implode('|', $returnTypes);
+    }
+
     /**
      * @param string $v
      * @param bool   $isSingleReturnType - у функции один тип возвращаемого значения?
@@ -189,8 +190,8 @@ class OperationGenerator
                 $dtoNameResolver = DtoNameResolver::createByModelFullName($modelFullName);
 
                 return new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
-            } catch (\Throwable $e) {
-                throw new \RuntimeException(var_export([
+            } catch (Throwable $e) {
+                throw new RuntimeException(var_export([
                     'dtoFullClassName' => $modelFullName,
                 ], true));
             }

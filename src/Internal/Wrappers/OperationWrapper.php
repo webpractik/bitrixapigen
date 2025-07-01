@@ -20,6 +20,7 @@ class OperationWrapper
 
     /**
      * Операция загружает файл application/octet-stream?
+     *
      * @return bool
      */
     public function isOctetStreamFile(): bool
@@ -71,12 +72,13 @@ class OperationWrapper
 
     /**
      * Получаем тип элементов массива, если в requestBody тип параметра - массив
+     *
      * @return string|null
      */
     public function getArrayItemType(): ?string
     {
         $operationData = $this->operation->getOperation();
-        $content = $operationData->getRequestBody()?->getContent();
+        $content       = $operationData->getRequestBody()?->getContent();
         if ($content === null) {
             return null;
         }
@@ -118,11 +120,13 @@ class OperationWrapper
 
     /**
      * Возвращает ли роут ответ в битриксовом формате {status:"success", data:{}, errors:[]}
+     *
      * @return bool
      */
     public function isBitrixFormat(): bool
     {
         $operationData = $this->operation->getOperation();
+
         return isset($operationData[self::ATTRIBUTE_BITRIX_FORMAT]) && $operationData[self::ATTRIBUTE_BITRIX_FORMAT] === true;
     }
 }

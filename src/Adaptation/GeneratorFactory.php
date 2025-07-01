@@ -2,8 +2,8 @@
 
 namespace Webpractik\Bitrixapigen\Adaptation;
 
+use InvalidArgumentException;
 use Jane\Component\JsonSchema\Generator\GeneratorInterface;
-use Webpractik\Bitrixapigen\Internal\BitrixControllersGenerator;
 use Jane\Component\OpenApi3\Generator\Parameter\NonBodyParameterGenerator;
 use Jane\Component\OpenApi3\Generator\RequestBodyContent\DefaultBodyContentGenerator;
 use Jane\Component\OpenApi3\Generator\RequestBodyContent\FormBodyContentGenerator;
@@ -14,6 +14,7 @@ use Jane\Component\OpenApiCommon\Naming\OperationIdNaming;
 use Jane\Component\OpenApiCommon\Naming\OperationUrlNaming;
 use PhpParser\ParserFactory;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Webpractik\Bitrixapigen\Internal\BitrixControllersGenerator;
 
 class GeneratorFactory
 {
@@ -21,23 +22,23 @@ class GeneratorFactory
     {
         $parser = (new ParserFactory())->createForHostVersion();
 
-        $nonBodyParameter = new NonBodyParameterGenerator($serializer, $parser);
+        $nonBodyParameter   = new NonBodyParameterGenerator($serializer, $parser);
         $exceptionGenerator = new ExceptionGenerator();
-        $operationNaming = new ChainOperationNaming([
+        $operationNaming    = new ChainOperationNaming([
             new OperationIdNaming(),
             new OperationUrlNaming(),
         ]);
 
         $defaultContentGenerator = new DefaultBodyContentGenerator($serializer);
-        $requestBodyGenerator = new RequestBodyGenerator($defaultContentGenerator);
+        $requestBodyGenerator    = new RequestBodyGenerator($defaultContentGenerator);
         $requestBodyGenerator->addRequestBodyGenerator(JsonBodyContentGenerator::JSON_TYPES, new JsonBodyContentGenerator($serializer));
         $requestBodyGenerator->addRequestBodyGenerator(['application/x-www-form-urlencoded', 'multipart/form-data'], new FormBodyContentGenerator($serializer));
 
         if (!class_exists($endpointGeneratorClass)) {
-            throw new \InvalidArgumentException(sprintf('Unknown generator class %s', $endpointGeneratorClass));
+            throw new InvalidArgumentException(sprintf('Unknown generator class %s', $endpointGeneratorClass));
         }
 
-        $endpointGenerator = new $endpointGeneratorClass($operationNaming, $nonBodyParameter, $serializer, $exceptionGenerator, $requestBodyGenerator);
+        $endpointGenerator  = new $endpointGeneratorClass($operationNaming, $nonBodyParameter, $serializer, $exceptionGenerator, $requestBodyGenerator);
         $operationGenerator = new OperationGenerator($endpointGenerator);
 
         return new BitrixControllersGenerator($operationGenerator, $operationNaming);

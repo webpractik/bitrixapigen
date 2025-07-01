@@ -4,11 +4,8 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
 use Jane\Component\OpenApiCommon\Guesser\Guess\OperationGuess;
-use PhpParser\Node\ArrayItem;
-use PhpParser\Node\Expr\Array_;
 use PhpParser\Modifiers;
 use PhpParser\Node\Expr\Assign;
-use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\Variable;
@@ -42,7 +39,7 @@ class UseCaseBoilerplateSchema
                     null,
                     new Identifier('array')
                 );
-            } elseif($m->var->name !== 'requestBody') {
+            } elseif ($m->var->name !== 'requestBody') {
                 $params[] = new Param(
                     var: new Variable($m->var->name),
                     type: new Identifier($typeName)
@@ -82,9 +79,9 @@ class UseCaseBoilerplateSchema
             );
         }
 
-        $dto = "";
+        $dto             = "";
         $collectionClass = null;
-        $returnType = [];
+        $returnType      = [];
         if (count($returnTypes) == 1) {
             $v = $returnTypes[0];
             if ($returnTypes[0] == "null") {
@@ -101,7 +98,6 @@ class UseCaseBoilerplateSchema
                 }
                 $dto = new Name($v);
             }
-
         } else {
             foreach ($returnTypes as $v) {
                 if ($v == "null") {
@@ -131,7 +127,7 @@ class UseCaseBoilerplateSchema
         if ($dto !== "") {
             if ($collectionClass !== null) {
                 $collectionVar = new Variable('collection');
-                $stmts[] = new Expression(
+                $stmts[]       = new Expression(
                     new Assign(
                         $collectionVar,
                         new New_($collectionClass)
@@ -155,6 +151,7 @@ class UseCaseBoilerplateSchema
                 );
             }
         }
+
         return new File(
             $dPath, new Namespace_(
             new Name("Webpractik\Bitrixgen\UseCase"),
@@ -163,21 +160,21 @@ class UseCaseBoilerplateSchema
                     new Identifier($dName),
                     [
                         'implements' => [
-                            new Name\FullyQualified("Webpractik\Bitrixgen\Interfaces\I" . $dName)
+                            new Name\FullyQualified("Webpractik\Bitrixgen\Interfaces\I" . $dName),
                         ],
-                        'stmts' => [
+                        'stmts'      => [
                             new ClassMethod(
                                 new Identifier('process'),
                                 [
-                                    'flags' => Modifiers::PUBLIC,
-                                    'params' => $params,
+                                    'flags'      => Modifiers::PUBLIC,
+                                    'params'     => $params,
                                     'returnType' => count($returnTypes) == 1 ? $returnType : new UnionType($returnType),
-                                    'stmts' => $stmts
+                                    'stmts'      => $stmts,
                                 ]
-                            )
-                        ]
+                            ),
+                        ],
                     ]
-                )
+                ),
             ]
         ),
             'client'

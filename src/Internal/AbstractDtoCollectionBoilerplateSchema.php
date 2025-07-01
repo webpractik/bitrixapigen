@@ -4,6 +4,7 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 use Jane\Component\JsonSchema\Generator\File;
 use PhpParser\ParserFactory;
+
 use const DIRECTORY_SEPARATOR;
 
 /**
@@ -46,7 +47,7 @@ abstract class $className extends AbstractCollection
 PHP;
 
         $parser = (new ParserFactory())->createForHostVersion();
-        $ast = $parser->parse($code);
+        $ast    = $parser->parse($code);
 
         $namespaceNode = reset($ast);
 

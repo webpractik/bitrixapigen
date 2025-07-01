@@ -8,13 +8,14 @@ use Jane\Component\JsonSchema\Console\Loader\SchemaLoaderInterface;
 use Jane\Component\JsonSchema\Printer;
 use Jane\Component\JsonSchema\Registry\RegistryInterface;
 use Jane\Component\OpenApiCommon\Console\Loader\OpenApiMatcher;
-use Jane\Component\OpenApiCommon\JaneOpenApi;
 use Jane\Component\OpenApiCommon\Registry\Registry;
 use PhpParser\PrettyPrinter\Standard;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Webpractik\Bitrixapigen\Internal\BitrixModuleGenerator;
+
+use function array_key_exists;
+use function is_bool;
 
 class GenerateCommand extends BaseGenerateCommand
 {
@@ -40,34 +41,34 @@ class GenerateCommand extends BaseGenerateCommand
         $openApiFile = $input->getOption('openapi-file');
         if (empty($openApiFile)) {
             $output->writeln('<error>Параметр --openapi-file обязателен.</error>');
+
             return self::FAILURE;
         }
         $locale = trim($input->getOption('locale') ?? '');
 
-        $configFile = dirname(__DIR__, 2) . '/.jane-openapi';
-        $options = $this->configLoader->load($configFile);
+        $configFile              = dirname(__DIR__, 2) . '/.jane-openapi';
+        $options                 = $this->configLoader->load($configFile);
 
         GenerationContext::init($locale !== '' ? $locale : 'ru');
-
         $options['openapi-file'] = $openApiFile;
-        $registries = $this->registries($options);
+        $registries              = $this->registries($options);
 
         /** @var Registry $registry */
         foreach ($registries as $registry) {
-            $openApiClass = '\Webpractik\Bitrixapigen\Adaptation\WebpractikOpenApi';
-            $janeOpenApi = $openApiClass::build($options);
+            $openApiClass    = '\Webpractik\Bitrixapigen\Adaptation\WebpractikOpenApi';
+            $janeOpenApi     = $openApiClass::build($options);
             $fixerConfigFile = '';
 
-            if (\array_key_exists('fixer-config-file', $options) && null !== $options['fixer-config-file']) {
+            if (array_key_exists('fixer-config-file', $options) && null !== $options['fixer-config-file']) {
                 $fixerConfigFile = $options['fixer-config-file'];
             }
 
             $printer = new Printer(new Standard(['shortArraySyntax' => true]), $fixerConfigFile);
 
-            if (\array_key_exists('use-fixer', $options) && \is_bool($options['use-fixer'])) {
+            if (array_key_exists('use-fixer', $options) && is_bool($options['use-fixer'])) {
                 $printer->setUseFixer($options['use-fixer']);
             }
-            if (\array_key_exists('clean-generated', $options) && \is_bool($options['clean-generated'])) {
+            if (array_key_exists('clean-generated', $options) && is_bool($options['clean-generated'])) {
                 $printer->setCleanGenerated($options['clean-generated']);
             }
 
@@ -87,13 +88,13 @@ class GenerateCommand extends BaseGenerateCommand
 
         $customQueryResolver = [];
         foreach ($options['custom-query-resolver'] ?? [] as $path => $methods) {
-            if (!\array_key_exists($path, $customQueryResolver)) {
+            if (!array_key_exists($path, $customQueryResolver)) {
                 $customQueryResolver[$path] = [];
             }
 
             foreach ($methods as $method => $parameters) {
                 $method = mb_strtolower($method);
-                if (!\array_key_exists($method, $customQueryResolver[$path])) {
+                if (!array_key_exists($method, $customQueryResolver[$path])) {
                     $customQueryResolver[$path][$method] = [];
                 }
 
@@ -107,7 +108,7 @@ class GenerateCommand extends BaseGenerateCommand
                 }
 
                 foreach ($parameters as $name => $class) {
-                    if (!\array_key_exists($name, $customQueryResolver[$path][$method])) {
+                    if (!array_key_exists($name, $customQueryResolver[$path][$method])) {
                         $customQueryResolver[$path][$method][$name] = [];
                     }
 

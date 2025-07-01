@@ -2,4 +2,6 @@
 /generated
 .idea
 
+composer.lock
+
 /local/
