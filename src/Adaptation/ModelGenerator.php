@@ -69,11 +69,11 @@ class ModelGenerator extends BaseModelGenerator
 
             $schema->addFile(new File($collectionPath, $collection, 'collection'));
 
-            $readonlyDtoClassName      = $class->getName();
-            $readonlyDtoCollection     = $this->createReadonlyDtoClass($class, $schema);
-            $readonlyDtoCollectionPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
+            $readonlyDtoClassName = $class->getName();
+            $readonlyDtoNamespace = $this->createReadonlyDtoClass($class, $schema);
+            $readonlyDtoPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
 
-            $schema->addFile(new File($readonlyDtoCollectionPath, $readonlyDtoCollection, self::FILE_TYPE_MODEL));
+            $schema->addFile(new File($readonlyDtoPath, $readonlyDtoNamespace, self::FILE_TYPE_MODEL));
         }
     }
 
