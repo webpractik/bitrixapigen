@@ -6,6 +6,7 @@ use Jane\Component\JsonSchema\Generator\Context\Context;
 use Jane\Component\JsonSchema\Generator\File;
 use Jane\Component\JsonSchema\Generator\ModelGenerator as BaseModelGenerator;
 use Jane\Component\JsonSchema\Guesser\Guess\ArrayType;
+use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess;
 use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess as BaseClassGuess;
 use Jane\Component\JsonSchema\Guesser\Guess\ObjectType;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
@@ -60,10 +61,8 @@ class ModelGenerator extends BaseModelGenerator
         ));
 
         foreach ($schema->getClasses() as $class) {
-            $baseName        = BetterNaming::getClassName($class->getReference(), $class->getName());
-            $dtoNameResolver = DtoNameResolver::createByModelName($baseName);
-
-            $collectionClassName = $dtoNameResolver->getCollectionClassName();
+            $nameResolver        = $this->getNameResolver($class);
+            $collectionClassName = $nameResolver->getCollectionClassName();
             $collection          = $this->createCollectionClass($class, $schema);
             $collectionPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
 
@@ -113,12 +112,9 @@ EOD
 
     protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $baseName            = BetterNaming::getClassName($class->getReference(), $class->getName());
-        $modelClassName      = $this->getNaming()->getClassName($baseName);
-        $dtoNameResolver     = DtoNameResolver::createByModelName($modelClassName);
-        $collectionClassName = $dtoNameResolver->getCollectionClassName();
-
-        $dtoFqcn = $dtoNameResolver->getDtoFullClassName();
+        $nameResolver        = $this->getNameResolver($class);
+        $collectionClassName = $nameResolver->getCollectionClassName();
+        $dtoFqcn             = $nameResolver->getDtoFullClassName();
 
         $useDto = new Use_([new UseItem(new Name($dtoFqcn))]);
 
@@ -126,7 +122,7 @@ EOD
             'flags'      => Modifiers::PUBLIC,
             'returnType' => new Name('string'),
             'stmts'      => [
-                new Stmt\Return_(new ClassConstFetch(new Name($dtoNameResolver->getDtoClassName()), 'class')),
+                new Stmt\Return_(new ClassConstFetch(new Name($nameResolver->getDtoClassName()), 'class')),
             ],
         ]);
 
@@ -183,10 +179,8 @@ EOD
         if ($propertyType instanceof ArrayType && $object instanceof Reference) {
             $class = $schema->getClass($object->getMergedUri());
             if ($class) {
-                $baseName        = BetterNaming::getClassName($class->getReference(), $class->getName());
-                $modelClassName  = $this->getNaming()->getClassName($baseName);
-                $dtoNameResolver = DtoNameResolver::createByModelName($modelClassName);
-                $type            = new Identifier($dtoNameResolver->getCollectionFullClassName());
+                $nameResolver = $this->getNameResolver($class);
+                $type         = new Identifier($nameResolver->getCollectionFullClassName());
             }
         }
         if ($property->isNullable()) {
@@ -194,5 +188,13 @@ EOD
         }
 
         return $type;
+    }
+
+    private function getNameResolver(ClassGuess $class): DtoNameResolver
+    {
+        $baseName  = BetterNaming::getClassName($class->getReference(), $class->getName());
+        $modelName = $this->getNaming()->getClassName($baseName);
+
+        return DtoNameResolver::createByModelName($modelName);
     }
 }
