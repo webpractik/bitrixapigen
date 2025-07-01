@@ -28,6 +28,7 @@ use PhpParser\Node\UseItem;
 use Webpractik\Bitrixapigen\Internal\AbstractCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\BetterNaming;
 use Webpractik\Bitrixapigen\Internal\BitrixFileNormalizerBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\UploadedFileCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
@@ -57,7 +58,8 @@ class ModelGenerator extends BaseModelGenerator
         ));
 
         foreach ($schema->getClasses() as $class) {
-            $dtoNameResolver = DtoNameResolver::createByModelName($class->getName());
+            $baseName        = BetterNaming::getClassName($class->getReference(), $class->getName());
+            $dtoNameResolver = DtoNameResolver::createByModelName($baseName);
 
             $collectionClassName = $dtoNameResolver->getCollectionClassName();
             $collection          = $this->createCollectionClass($class, $schema);
@@ -109,7 +111,8 @@ EOD
 
     protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $modelClassName      = $this->getNaming()->getClassName($class->getName());
+        $baseName            = BetterNaming::getClassName($class->getReference(), $class->getName());
+        $modelClassName      = $this->getNaming()->getClassName($baseName);
         $dtoNameResolver     = DtoNameResolver::createByModelName($modelClassName);
         $collectionClassName = $dtoNameResolver->getCollectionClassName();
 
