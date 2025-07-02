@@ -54,7 +54,6 @@ class ModelGenerator extends BaseModelGenerator
         $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
         $collectionDirPath   = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
 
-        $validatorDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
         $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
         $schema->addFile(AbstractDtoCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractDtoCollection'));
         $schema->addFile(UploadedFileCollectionBoilerplateSchema::generate($collectionDirPath . DIRECTORY_SEPARATOR . 'Files', $collectionNamespace . '\\Files', 'UploadedFileCollection'));
@@ -65,15 +64,6 @@ class ModelGenerator extends BaseModelGenerator
         ));
 
         foreach ($schema->getClasses() as $class) {
-            $nameResolver        = $this->getNameResolver($class);
-            $collectionClassName = $nameResolver->getCollectionClassName();
-            $collection          = $this->createCollectionClass($class, $schema);
-            $collectionPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
-
-            $schema->addFile(new File($collectionPath, $collection, 'collection'));
-
-            $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName() . 'CollectionConstraint', $class->getName() . 'Constraint', $validatorDirPath));
-
             $readonlyDtoClassName = $class->getName();
             $readonlyDtoNamespace = $this->createReadonlyDtoClass($class, $schema);
             $readonlyDtoPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
@@ -145,6 +135,8 @@ EOD
 
     private function createReadonlyDtoClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
+        $this->createDtoParameterCollections($class, $schema);
+
         $dtoClassName      = $this->getNaming()->getClassName($class->getName()) . 'Dto';
         $readonlyClassName = $dtoClassName;
 
@@ -193,6 +185,28 @@ EOD
         }
 
         return $type;
+    }
+
+    private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): void
+    {
+        $validatorDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
+
+        foreach ($class->getLocalProperties() as $property) {
+            $propertyType = $property->getType();
+            if ($propertyType instanceof ArrayType) {
+                $class = $this->getArrayItemClass($property->getObject(), $schema);
+                if (null !== $class) {
+                    $nameResolver        = $this->getNameResolver($class);
+                    $collectionClassName = $nameResolver->getCollectionClassName();
+                    $collectionPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
+                    $collection          = $this->createCollectionClass($class, $schema);
+
+                    $schema->addFile(new File($collectionPath, $collection, 'collection'));
+
+                    $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName() . 'CollectionConstraint', $class->getName() . 'Constraint', $validatorDirPath));
+                }
+            }
+        }
     }
 
     private function getNameResolver(ClassGuess $class): DtoNameResolver
