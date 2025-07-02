@@ -21,7 +21,6 @@ class $className extends \Symfony\Component\Validator\Constraints\Compound
     protected function getConstraints(\$options): array
     {
         return [
-            new \Symfony\Component\Validator\Constraints\NotNull(['message' => 'Массив объектов не должен быть null.']),
             new \Symfony\Component\Validator\Constraints\Type(['type' => 'array']),
             new \Symfony\Component\Validator\Constraints\All([
                 'constraints' => [
