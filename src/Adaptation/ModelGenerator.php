@@ -135,7 +135,7 @@ EOD
 
     private function createReadonlyDtoClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $this->createDtoParameterCollections($class, $schema);
+        $uses = $this->createDtoParameterCollections($class, $schema);
 
         $dtoClassName      = $this->getNaming()->getClassName($class->getName()) . 'Dto';
         $readonlyClassName = $dtoClassName;
@@ -161,7 +161,7 @@ EOD
 
         return new Namespace_(
             new Name($schema->getNamespace() . '\\Dto'),
-            [$classNode]
+            [...$uses, $classNode]
         );
     }
 
@@ -177,7 +177,7 @@ EOD
             $class = $this->getArrayItemClass($property->getObject(), $schema);
             if ($class) {
                 $nameResolver = $this->getNameResolver($class);
-                $type         = new Identifier($nameResolver->getCollectionFullClassName());
+                $type         = new Identifier($nameResolver->getCollectionClassName());
             }
         }
         if ($property->isNullable()) {
@@ -187,9 +187,18 @@ EOD
         return $type;
     }
 
-    private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): void
+    /**
+     * @param BaseClassGuess $class
+     * @param Schema         $schema
+     *
+     * @return Use_[]
+     */
+    private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): array
     {
         $validatorDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
+
+        /** @var Use_[] $uses */
+        $uses = [];
 
         foreach ($class->getLocalProperties() as $property) {
             $propertyType = $property->getType();
@@ -204,9 +213,13 @@ EOD
                     $schema->addFile(new File($collectionPath, $collection, 'collection'));
 
                     $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName() . 'CollectionConstraint', $class->getName() . 'Constraint', $validatorDirPath));
+
+                    $uses[] = new Use_([new UseItem(new Name($nameResolver->getCollectionFullClassName()))]);
                 }
             }
         }
+
+        return $uses;
     }
 
     private function getNameResolver(ClassGuess $class): DtoNameResolver
