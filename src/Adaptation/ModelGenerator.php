@@ -12,6 +12,7 @@ use Jane\Component\JsonSchema\Guesser\Guess\ObjectType;
 use Jane\Component\JsonSchema\Guesser\Guess\Property;
 use Jane\Component\JsonSchema\Registry\Schema;
 use Jane\Component\JsonSchemaRuntime\Reference;
+use Jane\Component\OpenApi3\JsonSchema\Model\Schema as ModelSchema;
 use Jane\Component\OpenApiCommon\Generator\Model\ClassGenerator;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
@@ -53,8 +54,7 @@ class ModelGenerator extends BaseModelGenerator
         $collectionNamespace = $schema->getNamespace() . '\\Dto\\Collection';
         $collectionDirPath   = $dtoDirPath . DIRECTORY_SEPARATOR . 'Collection';
 
-        $validatorNamespace = $schema->getNamespace() . '\\Validator';
-        $validatorDirPath =   $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
+        $validatorDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
         $schema->addFile(AbstractCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractCollection'));
         $schema->addFile(AbstractDtoCollectionBoilerplateSchema::generate($collectionDirPath, $collectionNamespace, 'AbstractDtoCollection'));
         $schema->addFile(UploadedFileCollectionBoilerplateSchema::generate($collectionDirPath . DIRECTORY_SEPARATOR . 'Files', $collectionNamespace . '\\Files', 'UploadedFileCollection'));
@@ -72,7 +72,7 @@ class ModelGenerator extends BaseModelGenerator
 
             $schema->addFile(new File($collectionPath, $collection, 'collection'));
 
-            $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName().'CollectionConstraint', $class->getName().'Constraint', $validatorDirPath));
+            $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName() . 'CollectionConstraint', $class->getName() . 'Constraint', $validatorDirPath));
 
             $readonlyDtoClassName = $class->getName();
             $readonlyDtoNamespace = $this->createReadonlyDtoClass($class, $schema);
@@ -176,14 +176,13 @@ EOD
     private function getDtoPropertyParameterType(Property $property, Schema $schema): Node
     {
         $propertyType = $property->getType();
-        $object       = $property->getObject();
 
         $type = new Identifier($propertyType->getName());
         if ($propertyType instanceof ObjectType) {
             $type = new Identifier($propertyType->getClassName() . 'Dto');
         }
-        if ($propertyType instanceof ArrayType && $object instanceof Reference) {
-            $class = $schema->getClass($object->getMergedUri());
+        if ($propertyType instanceof ArrayType) {
+            $class = $this->getArrayItemClass($property->getObject(), $schema);
             if ($class) {
                 $nameResolver = $this->getNameResolver($class);
                 $type         = new Identifier($nameResolver->getCollectionFullClassName());
@@ -202,5 +201,21 @@ EOD
         $modelName = $this->getNaming()->getClassName($baseName);
 
         return DtoNameResolver::createByModelName($modelName);
+    }
+
+    private function getArrayItemClass(object $object, Schema $schema): ClassGuess|null
+    {
+        if ($object instanceof Reference) {
+            return $schema->getClass($object->getMergedUri());
+        }
+
+        if ($object instanceof ModelSchema) {
+            $items = $object->getItems();
+            if ($items instanceof Reference) {
+                return $schema->getClass($items->getMergedUri());
+            }
+        }
+
+        return null;
     }
 }

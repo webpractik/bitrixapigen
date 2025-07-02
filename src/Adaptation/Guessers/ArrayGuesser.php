@@ -5,6 +5,7 @@ namespace Webpractik\Bitrixapigen\Adaptation\Guessers;
 use Jane\Component\JsonSchema\Generator\Naming;
 use Jane\Component\JsonSchema\Guesser\Guess\ClassGuess;
 use Jane\Component\JsonSchema\Registry\Registry;
+use Jane\Component\JsonSchemaRuntime\Reference;
 use Jane\Component\OpenApiCommon\Guesser\OpenApiSchema\ArrayGuesser as JaneArrayGuesser;
 
 class ArrayGuesser extends JaneArrayGuesser
@@ -31,7 +32,10 @@ class ArrayGuesser extends JaneArrayGuesser
             }
         }
 
-        parent::guessClass($object, $name, $reference, $registry);
+        $items = $object->getItems();
+        if ($items instanceof Reference || is_a($items, $this->getSchemaClass())) {
+            $this->chainGuesser->guessClass($items, $name . 'Item', $reference . '/items', $registry);
+        }
     }
 
     private function createClassGuess($object, string $reference, string $name): ClassGuess
