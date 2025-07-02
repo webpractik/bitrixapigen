@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.6.1](https://github.com/webpractik/bitrixapigen/compare/v2.6.0...v2.6.1) (2025-07-02)
+
+
+### Bug Fixes
+
+* **constraints:** убрана лишняя валидация ([0f74a2d](https://github.com/webpractik/bitrixapigen/commit/0f74a2d17675831e226cd55706894176877e4ac2))
+* **dto:** добавлено импортирование коллекций ([7779371](https://github.com/webpractik/bitrixapigen/commit/7779371581b331ea15d5287e5869858a3d43ebe3)), closes [#35](https://github.com/webpractik/bitrixapigen/issues/35)
+
 ## [2.6.0](https://github.com/webpractik/bitrixapigen/compare/v2.4.3...v2.6.0) (2025-07-02)
 
 
