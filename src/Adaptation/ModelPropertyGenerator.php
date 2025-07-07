@@ -12,6 +12,7 @@ use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Parser;
+use RuntimeException;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 use function is_array;
@@ -51,8 +52,14 @@ trait ModelPropertyGenerator
             $type);
     }
 
+    /**
+     * @throws RuntimeException
+     * @deprecated Вызова этого метода не ожидается
+     */
     protected function createPropertyDoc(Property $property, $namespace, bool $strict): Doc
     {
+        throw new RuntimeException('Deprecated method');
+
         $docTypeHint = $property->getType()->getDocTypeHint($namespace);
 
         if (($property->getObject() instanceof Schema) &&
@@ -104,8 +111,14 @@ EOD
         return new Doc($description);
     }
 
+    /**
+     * @throws RuntimeException
+     * @deprecated Вызова этого метода не ожидается
+     */
     protected function getPropertyType(Property $property, string $namespace, bool $strict): null|Identifier|Name
     {
+        throw new RuntimeException('Deprecated method');
+
         $phpType = $property->getType()->getTypeHint($namespace)?->toString();
 
         if ($phpType === null) {

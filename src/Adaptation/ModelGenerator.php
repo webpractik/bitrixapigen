@@ -29,6 +29,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\UseItem;
+use RuntimeException;
 use Webpractik\Bitrixapigen\Internal\AbstractCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
@@ -72,8 +73,15 @@ class ModelGenerator extends BaseModelGenerator
         }
     }
 
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     * @deprecated Вызова этого метода не ожидается
+     */
     protected function createModel(string $name, array $properties, array $methods, bool $hasExtensions = false, bool $deprecated = false, ?string $extends = null): Stmt\Class_
     {
+        throw new RuntimeException('Deprecated method');
+
         $classExtends = null;
         if (null !== $extends) {
             $classExtends = new Name($extends);
