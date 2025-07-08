@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.7.0](https://github.com/webpractik/bitrixapigen/compare/v2.6.1...v2.7.0) (2025-07-08)
+
+
+### Features
+
+* **dto:** сделано раскладывание DTO по каталогам, соответсвующим файлам схем ([2693e7d](https://github.com/webpractik/bitrixapigen/commit/2693e7d9610556e6d0c47effbfd1181231f6bc89)), closes [#35](https://github.com/webpractik/bitrixapigen/issues/35)
+* добавлен выброс исключений в устаревших методах ([d35fb54](https://github.com/webpractik/bitrixapigen/commit/d35fb54c4f381de6f649a89421d8c6526a61e2bd))
+
+
+### Bug Fixes
+
+* **operation-wrapper:** добавлена проверка класса ([62c8ad5](https://github.com/webpractik/bitrixapigen/commit/62c8ad50c60cbf2e551fbba06b5629668d3cd5d9))
+
 ## [2.6.1](https://github.com/webpractik/bitrixapigen/compare/v2.6.0...v2.6.1) (2025-07-02)
 
 

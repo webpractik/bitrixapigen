@@ -1,6 +1,6 @@
 {
     "name": "webpractik/bitrixapigen",
-    "version": "2.6.1",
+    "version": "2.7.0",
     "autoload": {
         "psr-4": {
             "Webpractik\\Bitrixapigen\\": "src/"
