@@ -120,19 +120,20 @@ EOD
 
     protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $nameResolver        = $this->getNameResolver($class, $schema->getOrigin());
-        $collectionClassName = $nameResolver->getCollectionClassName();
-        $dtoFqcn             = $nameResolver->getDtoFullClassName();
+        $itemNameResolver = $this->getCollectionItemNameResolver($class, $schema);
 
-        $useDto = new Use_([new UseItem(new Name($dtoFqcn))]);
+        $useDto = new Use_([new UseItem(new Name($itemNameResolver->getDtoFullClassName()))]);
 
         $getItemTypeMethod = new ClassMethod('getItemType', [
             'flags'      => Modifiers::PUBLIC,
             'returnType' => new Name('string'),
             'stmts'      => [
-                new Stmt\Return_(new ClassConstFetch(new Name($nameResolver->getDtoClassName()), 'class')),
+                new Stmt\Return_(new ClassConstFetch(new Name($itemNameResolver->getDtoClassName()), 'class')),
             ],
         ]);
+
+        $nameResolver        = $this->getNameResolver($class, $schema->getOrigin());
+        $collectionClassName = $nameResolver->getCollectionClassName();
 
         $classNode = new Class_($collectionClassName, [
             'extends' => new Name('AbstractDtoCollection'),
@@ -286,5 +287,29 @@ EOD
         }
 
         return null;
+    }
+
+    private function getCollectionItemNameResolver(BaseClassGuess $class, Schema $schema): DtoNameResolver
+    {
+        $object = $class->getObject();
+        if (!($object instanceof ModelSchema)) {
+            throw new RuntimeException('Objects ' . get_class($object) . ' not supported in collections');
+        }
+
+        $items = $object->getItems();
+        if ($items === null) {
+            return $this->getNameResolver($class, $schema->getOrigin());
+        }
+
+        if ($items instanceof Reference) {
+            $itemSchemaName    = BetterNaming::getSchemaName($items->getMergedUri());
+            $betterClassName   = BetterNaming::getClassName($items->getMergedUri(), $itemSchemaName);
+            $subNamespaceParts = BetterNaming::getSubNamespaceParts($items->getMergedUri(), $schema->getOrigin());
+
+            return DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
+        }
+
+        // TODO: простые типы
+        return $this->getNameResolver($class, $schema->getOrigin());
     }
 }

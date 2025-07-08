@@ -4,6 +4,11 @@ namespace Webpractik\Bitrixapigen\Internal;
 
 class BetterNaming
 {
+    public static function getSchemaName(string $reference): string
+    {
+        return preg_replace('/.+#\//', '', $reference);
+    }
+
     public static function getClassName(string $reference, string $name): string
     {
         $nameParts         = [];
