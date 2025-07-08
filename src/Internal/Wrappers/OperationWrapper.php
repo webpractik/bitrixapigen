@@ -33,7 +33,7 @@ class OperationWrapper
             $schema = $mediaType->getSchema();
             if (
                 $contentType === 'application/octet-stream' &&
-                $schema &&
+                $schema instanceof Schema &&
                 $schema->getType() === 'string' &&
                 $schema->getFormat() === 'binary'
             ) {
