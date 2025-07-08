@@ -100,8 +100,12 @@ class $className extends Controller
 
         \$dtoClass = \$collection->getItemType();
         foreach (\$data as \$item) {
-            \$dtoObject = \$this->convertDataToDto(\$dtoClass, \$item, \$files);
-            \$collection->add(\$dtoObject);
+            if (class_exists(\$dtoClass)) {
+                \$dtoObject = \$this->convertDataToDto(\$dtoClass, \$item, \$files);
+                \$collection->add(\$dtoObject);
+            } else {
+                \$collection->add(\$item);
+            }
         }
     }
 

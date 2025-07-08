@@ -122,13 +122,19 @@ EOD
     {
         $itemNameResolver = $this->getCollectionItemNameResolver($class, $schema);
 
-        $useDto = new Use_([new UseItem(new Name($itemNameResolver->getDtoFullClassName()))]);
+        if (null === $itemNameResolver) {
+            $useDto = null;
+            $return = $this->getBuiltinCollectionItemType($class);
+        } else {
+            $useDto = new Use_([new UseItem(new Name($itemNameResolver->getDtoFullClassName()))]);
+            $return = new ClassConstFetch(new Name($itemNameResolver->getDtoClassName()), 'class');
+        }
 
         $getItemTypeMethod = new ClassMethod('getItemType', [
             'flags'      => Modifiers::PUBLIC,
             'returnType' => new Name('string'),
             'stmts'      => [
-                new Stmt\Return_(new ClassConstFetch(new Name($itemNameResolver->getDtoClassName()), 'class')),
+                new Stmt\Return_($return),
             ],
         ]);
 
@@ -142,7 +148,7 @@ EOD
 
         return new Namespace_(
             new Name($schema->getNamespace() . '\\Dto\\Collection'),
-            [$useDto, $classNode]
+            $useDto ? [$useDto, $classNode] : [$classNode]
         );
     }
 
@@ -289,7 +295,7 @@ EOD
         return null;
     }
 
-    private function getCollectionItemNameResolver(BaseClassGuess $class, Schema $schema): DtoNameResolver
+    private function getCollectionItemNameResolver(BaseClassGuess $class, Schema $schema): ?DtoNameResolver
     {
         $object = $class->getObject();
         if (!($object instanceof ModelSchema)) {
@@ -309,7 +315,21 @@ EOD
             return DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
         }
 
-        // TODO: простые типы
-        return $this->getNameResolver($class, $schema->getOrigin());
+        return null;
+    }
+
+    private function getBuiltinCollectionItemType(BaseClassGuess $class): Node\Expr
+    {
+        $object = $class->getObject();
+        if (!($object instanceof ModelSchema)) {
+            throw new RuntimeException('Objects ' . get_class($object) . ' not supported in collections');
+        }
+
+        $items = $object->getItems();
+        if (!($items instanceof ModelSchema)) {
+            throw new RuntimeException('Items ' . ($items === null ? 'null' : get_class($items)) . ' not supported in collections');
+        }
+
+        return new Node\Scalar\String_($items->getType());
     }
 }

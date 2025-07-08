@@ -30,16 +30,23 @@ abstract class $className extends AbstractCollection
 {
     abstract public function getItemType(): string;
 
-    public function add(AbstractDto \$item): void
+    public function add(mixed \$item): void
     {
         \$itemType = \$this->getItemType();
-        if (!(\$item instanceof \$itemType)) {
-            throw new InvalidArgumentException('Неверный тип объекта. Ожидался: ' . \$this->getItemType());
+        if (class_exists(\$itemType)) {
+            if (!(\$item instanceof \$itemType)) {
+                throw new InvalidArgumentException('Неверный тип объекта. Ожидался: ' . \$itemType);
+            }
+        } else {
+            \$checkFuncion = 'is_' . \$itemType;
+            if (!\$checkFuncion(\$item)) {
+                throw new InvalidArgumentException('Неверный тип объекта. Ожидался: ' . \$itemType);
+            }
         }
         \$this->items[] = \$item;
     }
 
-    public function get(int \$index): ?AbstractDto
+    public function get(int \$index): mixed
     {
         return \$this->items[\$index] ?? null;
     }
