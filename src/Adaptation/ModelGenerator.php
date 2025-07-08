@@ -65,9 +65,13 @@ class ModelGenerator extends BaseModelGenerator
         ));
 
         foreach ($schema->getClasses() as $class) {
-            $readonlyDtoClassName = $class->getName();
+            $betterClassName      = BetterNaming::getClassName($class->getReference(), $class->getName());
+            $subNamespaceParts    = BetterNaming::getSubNamespaceParts($class->getReference(), $schema->getOrigin());
+            $dtoNameResolver      = DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
             $readonlyDtoNamespace = $this->createReadonlyDtoClass($class, $schema);
-            $readonlyDtoPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . $readonlyDtoClassName . 'Dto' . '.php';
+
+            $subNamespace    = implode(DIRECTORY_SEPARATOR, $dtoNameResolver->getSubNamespaceParts());
+            $readonlyDtoPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . ($subNamespace ? DIRECTORY_SEPARATOR . $subNamespace : '') . DIRECTORY_SEPARATOR . $dtoNameResolver->getDtoClassName() . '.php';
 
             $schema->addFile(new File($readonlyDtoPath, $readonlyDtoNamespace, self::FILE_TYPE_MODEL));
         }
@@ -116,7 +120,7 @@ EOD
 
     protected function createCollectionClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $nameResolver        = $this->getNameResolver($class);
+        $nameResolver        = $this->getNameResolver($class, $schema->getOrigin());
         $collectionClassName = $nameResolver->getCollectionClassName();
         $dtoFqcn             = $nameResolver->getDtoFullClassName();
 
@@ -143,10 +147,7 @@ EOD
 
     private function createReadonlyDtoClass(BaseClassGuess $class, Schema $schema): Namespace_
     {
-        $uses = $this->createDtoParameterCollections($class, $schema);
-
-        $dtoClassName      = $this->getNaming()->getClassName($class->getName()) . 'Dto';
-        $readonlyClassName = $dtoClassName;
+        $this->createDtoParameterCollections($class, $schema);
 
         $paramsObjects = [];
 
@@ -162,10 +163,16 @@ EOD
             'flags'  => Modifiers::PUBLIC,
         ]);
 
-        $classNode = new Class_($readonlyClassName, [
+        $betterClassName   = BetterNaming::getClassName($class->getReference(), $class->getName());
+        $subNamespaceParts = BetterNaming::getSubNamespaceParts($class->getReference(), $schema->getOrigin());
+        $dtoNameResolver   = DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
+
+        $classNode = new Class_($dtoNameResolver->getDtoClassName(), [
             'extends' => new Name('AbstractDto'),
             'stmts'   => [$__construct],
         ]);
+
+        $uses = $this->getDtoParameterUses($class, $schema);
 
         return new Namespace_(
             new Name($schema->getNamespace() . '\\Dto'),
@@ -184,7 +191,7 @@ EOD
         if ($propertyType instanceof ArrayType) {
             $class = $this->getArrayItemClass($property->getObject(), $schema);
             if ($class) {
-                $nameResolver = $this->getNameResolver($class);
+                $nameResolver = $this->getNameResolver($class, $schema->getOrigin());
                 $type         = new Identifier($nameResolver->getCollectionClassName());
             }
         }
@@ -195,47 +202,74 @@ EOD
         return $type;
     }
 
-    /**
-     * @param BaseClassGuess $class
-     * @param Schema         $schema
-     *
-     * @return Use_[]
-     */
-    private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): array
+    private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): void
     {
         $validatorDirPath = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Validator';
-
-        /** @var Use_[] $uses */
-        $uses = [];
 
         foreach ($class->getLocalProperties() as $property) {
             $propertyType = $property->getType();
             if ($propertyType instanceof ArrayType) {
                 $class = $this->getArrayItemClass($property->getObject(), $schema);
                 if (null !== $class) {
-                    $nameResolver        = $this->getNameResolver($class);
+                    $nameResolver        = $this->getNameResolver($class, $schema->getOrigin());
+                    $subNamespace        = implode(DIRECTORY_SEPARATOR, $nameResolver->getSubNamespaceParts());
                     $collectionClassName = $nameResolver->getCollectionClassName();
-                    $collectionPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
+                    $collectionPath      = $schema->getDirectory() . DIRECTORY_SEPARATOR . 'Dto' . DIRECTORY_SEPARATOR . 'Collection' . ($subNamespace ? DIRECTORY_SEPARATOR . $subNamespace : '') . DIRECTORY_SEPARATOR . $collectionClassName . '.php';
                     $collection          = $this->createCollectionClass($class, $schema);
 
                     $schema->addFile(new File($collectionPath, $collection, 'collection'));
 
                     $schema->addFile(CollectionConstraintBoilerplateSchema::generate($class->getName() . 'CollectionConstraint', $class->getName() . 'Constraint', $validatorDirPath));
+                }
+            }
+        }
+    }
 
-                    $uses[] = new Use_([new UseItem(new Name($nameResolver->getCollectionFullClassName()))]);
+    /**
+     * @param BaseClassGuess $class
+     * @param Schema         $schema
+     *
+     * @return Use_[]
+     */
+    private function getDtoParameterUses(BaseClassGuess $class, Schema $schema): array
+    {
+        /** @var string[] $fullClassNames */
+        $fullClassNames = [];
+
+        foreach ($class->getLocalProperties() as $property) {
+            $propertyType = $property->getType();
+            $object       = $property->getObject();
+
+            if ($propertyType instanceof ObjectType && $object instanceof Reference) {
+                $subNamespaceParts = BetterNaming::getSubNamespaceParts($object->getMergedUri(), $schema->getOrigin());
+                $nameResolver      = DtoNameResolver::createByModelName($propertyType->getClassName(), $subNamespaceParts);
+
+                $fullClassNames[] = $nameResolver->getDtoFullClassName();
+            } elseif ($propertyType instanceof ArrayType) {
+                $itemClass = $this->getArrayItemClass($property->getObject(), $schema);
+                if (null !== $itemClass) {
+                    $nameResolver = $this->getNameResolver($itemClass, $schema->getOrigin());
+
+                    $fullClassNames[] = $nameResolver->getCollectionFullClassName();
                 }
             }
         }
 
-        return $uses;
+        $fullClassNames = array_unique($fullClassNames);
+
+        return array_map(static function ($fullClassName) {
+            return new Use_([new UseItem(new Name($fullClassName))]);
+        }, $fullClassNames);
     }
 
-    private function getNameResolver(ClassGuess $class): DtoNameResolver
+    private function getNameResolver(ClassGuess $class, string $schemaOrigin): DtoNameResolver
     {
         $baseName  = BetterNaming::getClassName($class->getReference(), $class->getName());
         $modelName = $this->getNaming()->getClassName($baseName);
 
-        return DtoNameResolver::createByModelName($modelName);
+        $subNamespaceParts = BetterNaming::getSubNamespaceParts($class->getReference(), $schemaOrigin);
+
+        return DtoNameResolver::createByModelName($modelName, $subNamespaceParts);
     }
 
     private function getArrayItemClass(object $object, Schema $schema): ClassGuess|null

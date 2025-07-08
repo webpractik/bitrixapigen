@@ -18,6 +18,8 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Scalar;
 use PhpParser\Node\Stmt;
 use Symfony\Component\Serializer\SerializerInterface;
+use Webpractik\Bitrixapigen\Internal\BetterNaming;
+use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 use function count;
 use function in_array;
@@ -286,13 +288,17 @@ EOD
         $class         = null;
 
         if (null !== $classGuess) {
-            $class = $context->getRegistry()->getSchema($classGuess->getReference())->getNamespace() . '\\Model\\' . $classGuess->getName();
+            $subNamespaceParts = BetterNaming::getSubNamespaceParts($classGuess->getReference(), $context->getCurrentSchema()->getOrigin());
+            $subNamespace = implode('\\', $subNamespaceParts);
+            $class = $context->getRegistry()->getSchema($classGuess->getReference())->getNamespace() . '\\Model' . ($subNamespace ? '\\' . $subNamespace : '') . '\\' . $classGuess->getName();
 
             if ($array) {
                 $class .= '[]';
             }
 
-            $returnType    = '\\' . $class;
+            $betterClassName      = BetterNaming::getClassName($classGuess->getReference(), $classGuess->getName());
+            $dtoNameResolver      = DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
+            $returnType    = '\\' . $dtoNameResolver->getDtoFullClassName();
             $serializeStmt = new Expr\MethodCall(
                 new Expr\Variable('serializer'),
                 'deserialize',
