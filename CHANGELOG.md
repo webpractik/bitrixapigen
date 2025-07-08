@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.8.0](https://github.com/webpractik/bitrixapigen/compare/v2.7.0...v2.8.0) (2025-07-08)
+
+
+### Features
+
+* **dto:** улучшено определение DTO для элементов коллекции ([e17abb6](https://github.com/webpractik/bitrixapigen/commit/e17abb624e28f7bd8748697a79bc7075e15df40b)), closes [#35](https://github.com/webpractik/bitrixapigen/issues/35)
+
 ## [2.7.0](https://github.com/webpractik/bitrixapigen/compare/v2.6.1...v2.7.0) (2025-07-08)
 
 
