@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [2.9.0](https://github.com/webpractik/bitrixapigen/compare/v2.8.0...v2.9.0) (2025-07-08)
+
+
+### Features
+
+* **dto:** добавлена поддержка встроенных типов элементов коллекции ([1cf2d2b](https://github.com/webpractik/bitrixapigen/commit/1cf2d2b496b3d95b157770df90281702b7c72d70)), closes [#35](https://github.com/webpractik/bitrixapigen/issues/35)
+
 ## [2.8.0](https://github.com/webpractik/bitrixapigen/compare/v2.7.0...v2.8.0) (2025-07-08)
 
 
