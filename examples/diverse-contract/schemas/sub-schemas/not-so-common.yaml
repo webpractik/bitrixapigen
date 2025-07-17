@@ -1,0 +1,131 @@
+NotSoCommonReferences:
+    description: Ссылки на различные файлы
+    type: object
+    required:
+        - fromContractRequired
+        - fromAppendixRequired
+        - fromCommonRequired
+        - fromNotSoCommonRequired
+    properties:
+        fromContract:
+            $ref: '../../contract.yaml#/components/schemas/ContractItem'
+        fromContractRequired:
+            $ref: '../../contract.yaml#/components/schemas/ContractItem'
+        fromAppendix:
+            $ref: '../../appendix.yaml#/AppendixItem'
+        fromAppendixRequired:
+            $ref: '../../appendix.yaml#/AppendixItem'
+        fromCommon:
+            $ref: '../common.yaml#/CommonItem'
+        fromCommonRequired:
+            $ref: '../common.yaml#/CommonItem'
+        fromNotSoCommon:
+            $ref: '#/NotSoCommonItem'
+        fromNotSoCommonRequired:
+            $ref: '#/NotSoCommonItem'
+Arrays:
+    description: Различные виды массивов
+    type: object
+    required:
+        - stringArrayAsSchemaRequired
+        - simpleItemArrayAsSchemaRequired
+        - objectWithoutSchemaArrayAsSchemaRequired
+        - arrayOfStringsRequired
+        - arrayOfRefsRequired
+        - arrayOfObjectsWithoutSchemaRequired
+    properties:
+        stringArrayAsSchema:
+            $ref: '#/StringArraySchema'
+        stringArrayAsSchemaRequired:
+            $ref: '#/StringArraySchema'
+        simpleItemArrayAsSchema:
+            $ref: '#/SimpleItemArraySchema'
+        simpleItemArrayAsSchemaRequired:
+            $ref: '#/SimpleItemArraySchema'
+        objectWithoutSchemaArrayAsSchema:
+            $ref: '#/ObjectWithoutSchemaArraySchema'
+        objectWithoutSchemaArrayAsSchemaRequired:
+            $ref: '#/ObjectWithoutSchemaArraySchema'
+        arrayOfStrings:
+            type: array
+            items:
+                type: string
+                example: '[{"type": "test"}]'
+        arrayOfStringsRequired:
+            type: array
+            items:
+                type: string
+                example: '[{"type": "test"}]'
+        arrayOfRefs:
+            type: array
+            items:
+                $ref: '#/SimpleItem'
+        arrayOfRefsRequired:
+            type: array
+            items:
+                $ref: '#/SimpleItem'
+        arrayOfObjectsWithoutSchema:
+            type: array
+            items:
+                type: object
+                properties:
+                    name:
+                        type: string
+        arrayOfObjectsWithoutSchemaRequired:
+            type: array
+            items:
+                type: object
+                properties:
+                    name:
+                        type: string
+StringArraySchema:
+    description: Массив строк
+    type: array
+    items:
+        type: string
+        example: '[{"type": "test"}]'
+SimpleItemArraySchema:
+    description: Массив простых объектов
+    type: array
+    items:
+        $ref: '#/SimpleItem'
+ObjectWithoutSchemaArraySchema:
+    description: Массив объектов без схемы
+    type: array
+    items:
+        type: object
+        properties:
+            name:
+                type: string
+SimpleItem:
+    type: object
+    properties:
+        name:
+            type: string
+NotSoCommonItem:
+    type: object
+    properties:
+        name:
+            type: string
+Monster:
+    type: object
+    required:
+        - monsterName
+    properties:
+        monsterName:
+            type: string
+LongRecursion:
+    description: Схема со ссылкой на саму себя через несколько других схем
+    type: object
+    required:
+        - id
+        - commons
+    properties:
+        id:
+            type: string
+        contract:
+            $ref: '../../contract.yaml#/components/schemas/LongRecursion'
+        commons:
+            type: array
+            items:
+                $ref: '../common.yaml#/LongRecursion'

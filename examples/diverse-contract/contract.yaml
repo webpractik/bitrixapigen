@@ -1,0 +1,981 @@
+openapi: 3.0.4
+info:
+    title: Diverse contract
+    description: Пример API с максимумом различных ситуаций для проверки генерации кода
+    version: 1.0.0
+servers:
+    -   url: https://{username}.gigantic-server.com:{port}/{basePath}
+        description: OpenAPI Specifications
+        variables:
+            username:
+                # note! no enum here means it is an open value
+                default: demo
+                description: A user-specific subdomain. Use `demo` for a free sandbox environment.
+            port:
+                enum:
+                    - '8443'
+                    - '443'
+                default: '8443'
+            basePath:
+                # open meaning there is the opportunity to use special base paths as assigned by the provider, default is `v2`
+                default: v2
+tags:
+    -   name: pages
+        description: Работа со страницами
+    -   name: meta-pages
+        description: Работа с мета страницами
+        externalDocs:
+            description: More details about meta-pages
+            url: https://docs.bump.sh/help/api-change-management/
+externalDocs:
+    description: More details about contract
+    url: https://docs.bump.sh/help/api-change-management/
+paths:
+    /without-response-content-and-operation-id-and-summary:
+        get:
+            responses:
+                '200':
+                    description: ОК
+    /several-responses:
+        get:
+            summary: Запрос с несколькими ответами
+            operationId: getSeveralResponses
+            externalDocs:
+                description: More details about route
+                url: https://docs.bump.sh/help/api-change-management/
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TypeRequiredNullCombinations'
+                '400':
+                    description: Bad Request
+                '401':
+                    description: Unauthorized
+                '403':
+                    description: Forbidden
+                '404':
+                    description: Страница не найдена
+            security: []
+    /some-path/long-path/request-methods:
+        get:
+            tags:
+                - pages
+            summary: GET запрос
+            operationId: getRequestMethod
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/TypeRequiredNullCombinations'
+            security:
+                -   pet_store_auth:
+                        - read:pets
+        post:
+            tags:
+                - pages
+            summary: POST запрос
+            operationId: postRequestMethod
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TypeRequiredNullCombinations'
+            responses:
+                '201':
+                    description: Created
+            security:
+                -   pet_store_auth:
+                        - write:pets
+        put:
+            tags:
+                - pages
+            summary: PUT запрос
+            operationId: putRequestMethod
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TypeRequiredNullCombinations'
+            responses:
+                '200':
+                    description: ОК
+        patch:
+            tags:
+                - pages
+            summary: PATCH запрос
+            operationId: patchRequestMethod
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TypeRequiredNullCombinations'
+            responses:
+                '200':
+                    description: ОК
+        delete:
+            tags:
+                - pages
+            summary: DELETE запрос
+            operationId: deleteRequestMethod
+            responses:
+                '200':
+                    description: ОК
+    /wit-parameters/{tabName}/{type}/{number}:
+        get:
+            tags:
+                - meta-pages
+            summary: Запрос с параметрами
+            description: >
+                Bloodshot eyes - metal skin
+                Serpents tongue - dagger claws
+            operationId: getWithParameters
+            parameters:
+                -   name: tabName
+                    in: path
+                    required: true
+                    description: название вкладки
+                    schema:
+                        type: string
+                -   name: type
+                    in: path
+                    required: true
+                    description: тип вкладки
+                    schema:
+                        type: string
+                        enum:
+                            - news
+                            - photos
+                -   name: number
+                    in: path
+                    required: true
+                    description: номер вкладки
+                    schema:
+                        type: number
+                -   name: page-name
+                    in: query
+                    description: Название страницы для пагинации
+                    schema:
+                        type: string
+                -   name: page-type
+                    in: query
+                    description: Тип страницы для пагинации
+                    schema:
+                        type: string
+                        enum:
+                            - page-news
+                            - page-photos
+                -   name: page
+                    in: query
+                    description: Номер страницы для пагинации
+                    schema:
+                        type: integer
+                -   name: page-name-required
+                    in: query
+                    required: true
+                    description: Обязательное название страницы для пагинации
+                    schema:
+                        type: string
+                -   name: page-type-required
+                    in: query
+                    required: true
+                    description: Обязательный тип страницы для пагинации
+                    schema:
+                        type: string
+                        enum:
+                            - page-news-required
+                            - page-photos-required
+                -   name: page-required
+                    required: true
+                    in: query
+                    description: Обязательный номер страницы для пагинации
+                    schema:
+                        type: integer
+                -   name: page-deprecated
+                    deprecated: true
+                    in: query
+                    description: Устаревший номер страницы для пагинации
+                    schema:
+                        type: integer
+                -   name: day
+                    in: query
+                    description: День
+                    schema:
+                        type: string
+                        format: date
+                -   name: day-time
+                    in: query
+                    description: День и время
+                    schema:
+                        type: string
+                        format: date-time
+            responses:
+                '200':
+                    description: ОК
+            security:
+                - {}
+                -   api_key: []
+                -   api_key_query: []
+                -   api_key_cookie: []
+                -   http_basic: []
+                -   http_bearer: []
+                -   pet_store_auth:
+                        - write:pets
+                        - read:pets
+                -   openid: []
+    /with-contract-references:
+        post:
+            summary: Запрос со ссылками на различные файлы с основного файла
+            operationId: postWithContractReferences
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ContractReferences'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ContractReferences'
+    /with-appendix-references:
+        post:
+            summary: Запрос со ссылками на различные файлы с рядом расположенного файла
+            operationId: postWithAppendixReferences
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './appendix.yaml#/AppendixReferences'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './appendix.yaml#/AppendixReferences'
+    /with-common-references:
+        post:
+            summary: Запрос со ссылками на различные файлы с файла в отдельной папке
+            operationId: postWithCommonReferences
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/CommonReferences'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/CommonReferences'
+    /with-not-so-common-references:
+        post:
+            summary: Запрос со ссылками на различные файлы с файла во вложенной папке
+            operationId: postWithNotSoCommonReferences
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonReferences'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonReferences'
+    /with-arrays:
+        post:
+            summary: Запрос с массивами
+            operationId: postWithArrays
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Arrays'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Arrays'
+    /with-not-so-common-arrays:
+        post:
+            summary: Запрос с массивами из вложенной папки
+            operationId: postWithNotSoCommonArrays
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/NotSoCommonArrays'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NotSoCommonArrays'
+    /with-sub-folder-arrays:
+        post:
+            summary: Запрос с массивами из под-папки
+            operationId: postWithSubFolderArrays
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/sub-schemas/not-so-common.yaml#/Arrays'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/sub-schemas/not-so-common.yaml#/Arrays'
+    /contract-array-without-schema:
+        post:
+            summary: Запрос с массивом без схемы
+            operationId: postContractArrayWithoutSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            minItems: 5
+                            maxItems: 10
+                            items:
+                                $ref: '#/components/schemas/ContractItem'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                minItems: 10
+                                maxItems: 20
+                                items:
+                                    $ref: '#/components/schemas/ContractItem'
+    /not-so-common-array-without-schema:
+        post:
+            summary: Запрос с массивом без схемы
+            operationId: postNotSoCommonArrayWithoutSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: array
+                            items:
+                                $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+    /contract-object-without-schema:
+        post:
+            summary: Запрос с объектом без схемы с основного файла
+            operationId: postContractObjectWithoutSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FieldObjectWithoutSchema'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/FieldObjectWithoutSchema'
+    /common-object-without-schema:
+        post:
+            summary: Запрос с объектом без схемы с файла в отдельной папке
+            operationId: postCommonObjectWithoutSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/FieldObjectWithoutSchema'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/FieldObjectWithoutSchema'
+    /deep-object:
+        post:
+            summary: Запрос с объектом с глубокой вложенностью
+            operationId: postDeepObject
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeepObject'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeepObject'
+    /binary-bodies:
+        post:
+            summary: Запрос с файлами в запросе и ответе
+            operationId: postBinaryBodies
+            requestBody:
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: binary
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/octet-stream:
+                            schema:
+                                type: string
+                                format: binary
+    /one-of:
+        post:
+            summary: Запрос с oneOf
+            operationId: postOneOf
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/Pet'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/Pet'
+    /one-of-with-discriminator:
+        post:
+            summary: Запрос с oneOf и discriminator
+            operationId: postOneOfWithDiscriminator
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/PetWithDiscriminator'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/PetWithDiscriminator'
+    /all-of:
+        post:
+            summary: Запрос с allOf
+            operationId: postAllOf
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/CatAndMonster'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/CatAndMonster'
+    /any-of:
+        post:
+            summary: Запрос с anyOf
+            operationId: postAnyOf
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/PartialDogAndMonster'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/PartialDogAndMonster'
+    /discriminator-composite:
+        post:
+            summary: Запрос с allOf и discriminator
+            operationId: postDiscriminatorComposite
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/CompositeCat'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/CompositeDog'
+    /contract-recursion:
+        post:
+            summary: Запрос с рекурсией в корневом файле
+            operationId: postContractRecursion
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ContractRecursion'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ContractRecursion'
+    /common-recursion:
+        post:
+            summary: Запрос с рекурсией в отдельной папке
+            operationId: postCommonRecursion
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: './schemas/common.yaml#/CommonRecursion'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: './schemas/common.yaml#/CommonRecursion'
+    /long-recursion:
+        post:
+            summary: Запрос с рекурсией через несколько других схем
+            operationId: postLongRecursion
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LongRecursion'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LongRecursion'
+    /with-extensions:
+        post:
+            summary: Запрос с расширениями спецификации
+            operationId: postWithExtensions
+            x-operation-id: 1
+            x-operation-name: first
+            x-operation-description: >
+                Many lines
+                description
+            x-operation-null: null
+            x-operation-array: []
+            x-operation-boolean: true
+            x-operation-object:
+                type: object
+                properties:
+                    x-operation-string: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WithExtensions'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WithExtensions'
+    /with-components:
+        post:
+            summary: Запрос со стандартными компонентами
+            operationId: postWithComponents
+            parameters:
+                -   $ref: '#/components/parameters/StandardSearch'
+            requestBody:
+                $ref: '#/components/requestBodies/StandardRequestBody'
+            responses:
+                '200':
+                    $ref: '#/components/responses/Standard200'
+components:
+    schemas:
+        TypeRequiredNullCombinations:
+            description: Разные комбинации типов и обязательности
+            type: object
+            required:
+                - withDescriptionAndExampleRequired
+                - nullableRequired
+                - requiredWriteOnly
+                - requiredReadOnly
+            properties:
+                typeOnly:
+                    type: string
+                withDescriptionAndExampleRequired:
+                    type: string
+                    description: Обязательное поле
+                    example: Технологические конкурсы UP GREAT
+                nullable:
+                    type: string
+                    nullable: true
+                nullableRequired:
+                    type: string
+                    nullable: true
+                    default: Новости
+                nullableEnum:
+                    type: string
+                    nullable: true
+                    enum:
+                        - Новости
+                        - База знаний
+                    default: Новости
+                nullableNumber:
+                    type: number
+                    nullable: true
+                    default: 1
+                    minimum: 0
+                    maximum: 5
+                nullableBoolean:
+                    type: boolean
+                    nullable: true
+                    default: true
+                nullableArray:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SimpleItem'
+                    nullable: true
+                    default: []
+                day:
+                    type: string
+                    format: date
+                day-and-time:
+                    type: string
+                    format: date-time
+                requiredWriteOnly:
+                    type: string
+                    writeOnly: true
+                requiredReadOnly:
+                    type: string
+                    readOnly: true
+                deprecatedName:
+                    type: string
+                    deprecated: true
+        ContractReferences:
+            description: Ссылки на различные файлы
+            type: object
+            required:
+                - fromContractRequired
+                - fromAppendixRequired
+                - fromCommonRequired
+                - fromNotSoCommonRequired
+            properties:
+                fromContract:
+                    $ref: '#/components/schemas/ContractItem'
+                fromContractRequired:
+                    $ref: '#/components/schemas/ContractItem'
+                fromAppendix:
+                    $ref: './appendix.yaml#/AppendixItem'
+                fromAppendixRequired:
+                    $ref: './appendix.yaml#/AppendixItem'
+                fromCommon:
+                    $ref: './schemas/common.yaml#/CommonItem'
+                fromCommonRequired:
+                    $ref: './schemas/common.yaml#/CommonItem'
+                fromNotSoCommon:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+                fromNotSoCommonRequired:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+        Arrays:
+            description: Различные виды массивов
+            type: object
+            required:
+                - stringArrayAsSchemaRequired
+                - simpleItemArrayAsSchemaRequired
+                - objectWithoutSchemaArrayAsSchemaRequired
+                - arrayOfStringsRequired
+                - arrayOfRefsRequired
+                - arrayOfObjectsWithoutSchemaRequired
+            properties:
+                stringArrayAsSchema:
+                    $ref: '#/components/schemas/StringArraySchema'
+                stringArrayAsSchemaRequired:
+                    $ref: '#/components/schemas/StringArraySchema'
+                simpleItemArrayAsSchema:
+                    $ref: '#/components/schemas/SimpleItemArraySchema'
+                simpleItemArrayAsSchemaRequired:
+                    $ref: '#/components/schemas/SimpleItemArraySchema'
+                objectWithoutSchemaArrayAsSchema:
+                    $ref: '#/components/schemas/ObjectWithoutSchemaArraySchema'
+                objectWithoutSchemaArrayAsSchemaRequired:
+                    $ref: '#/components/schemas/ObjectWithoutSchemaArraySchema'
+                arrayOfStrings:
+                    type: array
+                    xml:
+                        wrapped: true
+                    items:
+                        type: string
+                        example: '[{"type": "test"}]'
+                arrayOfStringsRequired:
+                    type: array
+                    items:
+                        type: string
+                        example: '[{"type": "test"}]'
+                arrayOfRefs:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SimpleItem'
+                arrayOfRefsRequired:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/SimpleItem'
+                arrayOfObjectsWithoutSchema:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                arrayOfObjectsWithoutSchemaRequired:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+        NotSoCommonArrays:
+            description: Массивы из вложенной папки
+            type: object
+            required:
+                - stringArrayAsSchemaRequired
+            properties:
+                stringArrayAsSchema:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/StringArraySchema'
+                stringArrayAsSchemaRequired:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/StringArraySchema'
+        StringArraySchema:
+            description: Массив строк
+            type: array
+            items:
+                type: string
+                example: '[{"type": "test"}]'
+        SimpleItemArraySchema:
+            description: Массив простых объектов
+            type: array
+            items:
+                $ref: '#/components/schemas/SimpleItem'
+        ObjectWithoutSchemaArraySchema:
+            description: Массив объектов без схемы
+            type: array
+            items:
+                type: object
+                properties:
+                    name:
+                        type: string
+        FieldObjectWithoutSchema:
+            description: Объект в схеме полем без своей схемы
+            type: object
+            properties:
+                withoutSchema:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+        DeepObject:
+            description: Объект с глубокой вложенностью
+            type: object
+            properties:
+                deepArray:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            someArray:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        name:
+                                            type: string
+                deepItem:
+                    type: object
+                    properties:
+                        someArray:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    name:
+                                        type: string
+        SimpleItem:
+            type: object
+            properties:
+                name:
+                    type: string
+        ContractItem:
+            description: >
+                Beholding the might
+                In its dawn of grace
+                In its beauty and light
+                In its pride and glory
+            type: object
+            externalDocs:
+                description: More details about schema
+                url: https://docs.bump.sh/help/api-change-management/
+            properties:
+                name:
+                    type: string
+                    description: |
+                        Слишком хорошо, чтоб отказаться
+                        Слишком страшно, чтобы взять
+        ContractRecursion:
+            description: Схема со ссылкой на саму себя
+            type: object
+            required:
+                - id
+                - contracts
+            properties:
+                id:
+                    type: string
+                contract:
+                    $ref: '#/components/schemas/ContractRecursion'
+                contracts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ContractRecursion'
+        LongRecursion:
+            description: Схема со ссылкой на саму себя через несколько других схем
+            type: object
+            required:
+                - id
+                - notSoCommons
+            properties:
+                id:
+                    type: string
+                appendix:
+                    $ref: './appendix.yaml#/LongRecursion'
+                notSoCommons:
+                    type: array
+                    items:
+                        $ref: './schemas/sub-schemas/not-so-common.yaml#/LongRecursion'
+        WithExtensions:
+            type: object
+            x-schema-id: 1
+            x-schema-name: first
+            x-schema-description: >
+                Many lines
+                description
+            x-schema-null: null
+            x-schema-array: []
+            x-schema-boolean: true
+            x-schema-object:
+                type: object
+                properties:
+                    x-schema-string: string
+            properties:
+                name:
+                    type: string
+    parameters:
+        StandardSearch:
+            name: q
+            in: query
+            required: false
+            description: поисковой запрос
+            schema:
+                type: string
+            examples:
+                StandardExample:
+                    $ref: '#/components/examples/StandardStringExample'
+    requestBodies:
+        StandardRequestBody:
+            description: Стандартный тело запроса
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/SimpleItem'
+                    examples:
+                        StandardExample:
+                            $ref: '#/components/examples/StandardSimpleItemExample'
+    responses:
+        Standard200:
+            description: Стандартный ответ 200
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/SimpleItem'
+                    examples:
+                        StandardExample:
+                            $ref: '#/components/examples/StandardSimpleItemExample'
+            headers:
+                X-Rate-Limit:
+                    $ref: '#/components/headers/X-Rate-Limit-Limit'
+                X-Rate-Required:
+                    description: The number of allowed requests in the current period
+                    required: true
+                    schema:
+                        type: integer
+    examples:
+        StandardStringExample:
+            value: Стандартный пример
+        StandardSimpleItemExample:
+            value:
+                name: Стандартный пример
+    headers:
+        X-Rate-Limit-Limit:
+            description: The number of allowed requests in the current period
+            schema:
+                type: integer
+    securitySchemes:
+        api_key:
+            type: apiKey
+            name: api-key
+            in: header
+        api_key_query:
+            type: apiKey
+            name: api-key-query
+            in: query
+        api_key_cookie:
+            type: apiKey
+            name: api-key-cookie
+            in: cookie
+        http_basic:
+            type: http
+            scheme: basic
+        http_bearer:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+        pet_store_auth:
+            type: oauth2
+            flows:
+                implicit:
+                    authorizationUrl: https://example.org/api/oauth/dialog
+                    scopes:
+                        write:pets: modify pets in your account
+                        read:pets: read your pets
+        openid:
+            type: openIdConnect
+            openIdConnectUrl: https://example.net/.well-known/openid-configuration
+security:
+    -   api_key: []
+

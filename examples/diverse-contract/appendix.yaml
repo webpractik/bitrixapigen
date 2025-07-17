@@ -1,0 +1,45 @@
+AppendixReferences:
+    description: Ссылки на различные файлы
+    type: object
+    required:
+        - fromContractRequired
+        - fromAppendixRequired
+        - fromCommonRequired
+        - fromNotSoCommonRequired
+    properties:
+        fromContract:
+            $ref: './contract.yaml#/components/schemas/ContractItem'
+        fromContractRequired:
+            $ref: './contract.yaml#/components/schemas/ContractItem'
+        fromAppendix:
+            $ref: '#/AppendixItem'
+        fromAppendixRequired:
+            $ref: '#/AppendixItem'
+        fromCommon:
+            $ref: './schemas/common.yaml#/CommonItem'
+        fromCommonRequired:
+            $ref: './schemas/common.yaml#/CommonItem'
+        fromNotSoCommon:
+            $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+        fromNotSoCommonRequired:
+            $ref: './schemas/sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+AppendixItem:
+    type: object
+    properties:
+        name:
+            type: string
+LongRecursion:
+    description: Схема со ссылкой на саму себя через несколько других схем
+    type: object
+    required:
+        - id
+        - contracts
+    properties:
+        id:
+            type: string
+        common:
+            $ref: './schemas/common.yaml#/LongRecursion'
+        contracts:
+            type: array
+            items:
+                $ref: './contract.yaml#/components/schemas/LongRecursion'

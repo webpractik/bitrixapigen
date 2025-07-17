@@ -1,0 +1,149 @@
+CommonReferences:
+    description: Ссылки на различные файлы
+    type: object
+    required:
+        - fromContractRequired
+        - fromAppendixRequired
+        - fromCommonRequired
+        - fromNotSoCommonRequired
+    properties:
+        fromContract:
+            $ref: '../contract.yaml#/components/schemas/ContractItem'
+        fromContractRequired:
+            $ref: '../contract.yaml#/components/schemas/ContractItem'
+        fromAppendix:
+            $ref: '../appendix.yaml#/AppendixItem'
+        fromAppendixRequired:
+            $ref: '../appendix.yaml#/AppendixItem'
+        fromCommon:
+            $ref: '#/CommonItem'
+        fromCommonRequired:
+            $ref: '#/CommonItem'
+        fromNotSoCommon:
+            $ref: './sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+        fromNotSoCommonRequired:
+            $ref: './sub-schemas/not-so-common.yaml#/NotSoCommonItem'
+FieldObjectWithoutSchema:
+    description: Объект в схеме полем без своей схемы
+    type: object
+    properties:
+        withoutSchema:
+            type: object
+            properties:
+                name:
+                    type: string
+CommonItem:
+    type: object
+    properties:
+        name:
+            type: string
+Pet:
+    oneOf:
+        -   $ref: '#/Cat'
+        -   $ref: '#/Dog'
+        -   $ref: './sub-schemas/not-so-common.yaml#/Monster'
+PetWithDiscriminator:
+    oneOf:
+        -   $ref: '#/Dog'
+        -   $ref: '#/lizard'
+        -   $ref: './sub-schemas/not-so-common.yaml#/Monster'
+    discriminator:
+        propertyName: petType
+    mapping:
+        dog: '#/Dog'
+        monster: './sub-schemas/not-so-common.yaml#/Monster'
+CatAndMonster:
+    allOf:
+        -   $ref: '#/Cat'
+        -   $ref: './sub-schemas/not-so-common.yaml#/Monster'
+        -   type: object
+            properties:
+                lovesRocks:
+                    type: boolean
+PartialDogAndMonster:
+    anyOf:
+        -   $ref: '#/Dog'
+        -   $ref: './sub-schemas/not-so-common.yaml#/Monster'
+        -   type: object
+            properties:
+                lovesRocks:
+                    type: boolean
+Cat:
+    type: object
+    required:
+        - catName
+    properties:
+        catName:
+            type: string
+Dog:
+    type: object
+    required:
+        - dogName
+    properties:
+        dogName:
+            type: string
+lizard:
+    deprecated: true
+    type: object
+    required:
+        - lizardName
+    properties:
+        lizardName:
+            type: string
+PetBase:
+    type: object
+    required:
+        - petType
+    properties:
+        petType:
+            type: string
+    discriminator:
+        propertyName: petType
+        mapping:
+            dog: Dog
+CompositeCat:
+    allOf:
+        -   $ref: '#/PetBase'
+        -   type: object
+            # all other properties specific to a `Cat`
+            properties:
+                name:
+                    type: string
+CompositeDog:
+    allOf:
+        -   $ref: '#/PetBase'
+        -   type: object
+            # all other properties specific to a `Dog`
+            properties:
+                bark:
+                    type: string
+CommonRecursion:
+    description: Схема со ссылкой на саму себя
+    type: object
+    required:
+        - id
+        - commons
+    properties:
+        id:
+            type: string
+        common:
+            $ref: '#/CommonRecursion'
+        commons:
+            type: array
+            items:
+                $ref: '#/CommonRecursion'
+LongRecursion:
+    description: Схема со ссылкой на саму себя через несколько других схем
+    type: object
+    required:
+        - id
+        - appendices
+    properties:
+        id:
+            type: string
+        notSoCommon:
+            $ref: './sub-schemas/not-so-common.yaml#/LongRecursion'
+        appendices:
+            type: array
+            items:
+                $ref: '../appendix.yaml#/LongRecursion'
