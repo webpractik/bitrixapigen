@@ -87,11 +87,11 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
   post:
     tags:
       - User
-    summary: 'User registration'
-    description: 'Регистрация пользователя.'
+    summary: User registration
+    description: Регистрация пользователя
     operationId: userRegistration
     requestBody:
-      description: 'Обязательные поля'
+      description: Обязательные поля
       required: true
       content:
         application/json:
@@ -112,11 +112,11 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
   post:
     tags:
       - User
-    summary: 'User registration'
-    description: 'Регистрация пользователя.'
+    summary: User registration
+    description: Регистрация пользователя
     operationId: userRegistration
     requestBody:
-      description: 'Обязательные поля'
+      description: Обязательные поля
       required: true
       content:
         application/json:
@@ -137,7 +137,7 @@ return static function (RoutingConfigurator $configurator) use ($getRoutePaths) 
               properties:
                 ID:
                   type: number
-                  example: '111'
+                  example: 111
 ```
 
 ☑️ Исключение: массив объектов
@@ -253,7 +253,7 @@ return new \Bitrix\Main\Engine\Response\Json(
 
 1. Создайте свой модуль, например, my.module
 
-2. Создайте в нем реализацию интерфейса соответствующего роута:
+2. Создайте в нем реализацию интерфейса для соответствующего роута:
 
 ```php
 namespace My\Module\UseCase;
