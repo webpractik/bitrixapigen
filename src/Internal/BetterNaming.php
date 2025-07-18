@@ -60,6 +60,14 @@ class BetterNaming
         return str_replace([' ', '_', '-'], '', ucwords($word, ' _-'));
     }
 
+    /**
+     * Camelizes a word. This uses the classify() method and turns the first character to lowercase.
+     */
+    public static function camelize(string $word): string
+    {
+        return lcfirst(self::classify($word));
+    }
+
     private static function getShortReference(string $reference, string $schemaOrigin): string
     {
         $lastSeparatorPosition = strrpos($schemaOrigin, '/');
