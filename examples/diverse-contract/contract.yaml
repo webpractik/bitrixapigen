@@ -705,9 +705,13 @@ components:
             description: Одинаковые названия схем в разных файлах
             type: object
             properties:
-                contractItem:
+                first:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/SimpleItem'
+                second:
                     $ref: '#/components/schemas/SimpleItem'
-                notSoCommonItem:
+                third:
+                    $ref: '#/components/schemas/SimpleItem'
+                fourth:
                     $ref: './schemas/sub-schemas/not-so-common.yaml#/SimpleItem'
         ContractReferences:
             description: Ссылки на различные файлы
