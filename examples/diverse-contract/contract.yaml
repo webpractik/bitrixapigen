@@ -40,6 +40,8 @@ paths:
                     description: ОК
     /several-responses:
         get:
+            tags:
+                - хитрый тег
             summary: Запрос с несколькими ответами
             operationId: getSeveralResponses
             externalDocs:
