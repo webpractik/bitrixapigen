@@ -30,6 +30,8 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\Node\UseItem;
 use RuntimeException;
+use Webpractik\Bitrixapigen\Dto\DtoParameterSettings;
+use Webpractik\Bitrixapigen\Dto\UseSettings;
 use Webpractik\Bitrixapigen\Internal\AbstractCollectionBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\AbstractDtoCollectionBoilerplateSchema;
@@ -37,6 +39,7 @@ use Webpractik\Bitrixapigen\Internal\BetterNaming;
 use Webpractik\Bitrixapigen\Internal\BitrixFileNormalizerBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\CollectionConstraintBoilerplateSchema;
 use Webpractik\Bitrixapigen\Internal\UploadedFileCollectionBoilerplateSchema;
+use Webpractik\Bitrixapigen\Internal\Utils\Aliases;
 use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 use const DIRECTORY_SEPARATOR;
@@ -156,17 +159,11 @@ EOD
     {
         $this->createDtoParameterCollections($class, $schema);
 
-        $paramsObjects = [];
-
-        foreach ($class->getLocalProperties() as $property) {
-            $paramsObjects[] = new Param(
-                var: new Variable(BetterNaming::camelize($property->getName())),
-                type: $this->getDtoPropertyParameterType($property, $schema),
-                flags: Modifiers::PUBLIC | Modifiers::READONLY);
-        }
+        $parameters     = $this->getDtoParameters($class->getLocalProperties(), $schema);
+        $allUseSettings = $this->getAllDtoUseSettings($parameters);
 
         $__construct = new ClassMethod('__construct', [
-            'params' => $paramsObjects,
+            'params' => $this->getDtoConstructorParameters($parameters, $allUseSettings),
             'flags'  => Modifiers::PUBLIC,
         ]);
 
@@ -179,34 +176,12 @@ EOD
             'stmts'   => [$__construct],
         ]);
 
-        $uses = $this->getDtoParameterUses($class, $schema);
+        $uses = $this->getDtoUses($allUseSettings);
 
         return new Namespace_(
             new Name($dtoNameResolver->getDtoNamespace()),
             [...$uses, $classNode]
         );
-    }
-
-    private function getDtoPropertyParameterType(Property $property, Schema $schema): Node
-    {
-        $propertyType = $property->getType();
-
-        $type = new Identifier($propertyType->getName());
-        if ($propertyType instanceof ObjectType) {
-            $type = new Identifier($propertyType->getClassName() . 'Dto');
-        }
-        if ($propertyType instanceof ArrayType) {
-            $class = $this->getArrayItemClass($property->getObject(), $schema);
-            if ($class) {
-                $nameResolver = $this->getNameResolver($class, $schema->getOrigin());
-                $type         = new Identifier($nameResolver->getCollectionClassName());
-            }
-        }
-        if ($property->isNullable()) {
-            $type = new NullableType($type);
-        }
-
-        return $type;
     }
 
     private function createDtoParameterCollections(BaseClassGuess $class, Schema $schema): void
@@ -233,40 +208,139 @@ EOD
     }
 
     /**
-     * @param BaseClassGuess $class
-     * @param Schema         $schema
+     * @param Property[] $properties
+     * @param Schema     $schema
      *
-     * @return Use_[]
+     * @return DtoParameterSettings[]
      */
-    private function getDtoParameterUses(BaseClassGuess $class, Schema $schema): array
+    private function getDtoParameters(array $properties, Schema $schema): array
     {
-        /** @var string[] $fullClassNames */
-        $fullClassNames = [];
-
-        foreach ($class->getLocalProperties() as $property) {
+        return array_map(function (Property $property) use ($schema) {
             $propertyType = $property->getType();
-            $object       = $property->getObject();
 
-            if ($propertyType instanceof ObjectType && $object instanceof Reference) {
-                $subNamespaceParts = BetterNaming::getSubNamespaceParts($object->getMergedUri(), $schema->getOrigin());
-                $nameResolver      = DtoNameResolver::createByModelName($propertyType->getClassName(), $subNamespaceParts);
+            $type          = new Identifier($propertyType->getName());
+            $fullClassName = null;
 
-                $fullClassNames[] = $nameResolver->getDtoFullClassName();
+            if ($propertyType instanceof ObjectType) {
+                $type = new Identifier($propertyType->getClassName() . 'Dto');
+
+                $object = $property->getObject();
+                if ($object instanceof Reference) {
+                    $subNamespaceParts = BetterNaming::getSubNamespaceParts($object->getMergedUri(), $schema->getOrigin());
+                    $nameResolver      = DtoNameResolver::createByModelName($propertyType->getClassName(), $subNamespaceParts);
+
+                    $fullClassName = $nameResolver->getDtoFullClassName();
+                }
             } elseif ($propertyType instanceof ArrayType) {
                 $itemClass = $this->getArrayItemClass($property->getObject(), $schema);
                 if (null !== $itemClass) {
                     $nameResolver = $this->getNameResolver($itemClass, $schema->getOrigin());
 
-                    $fullClassNames[] = $nameResolver->getCollectionFullClassName();
+                    $type          = new Identifier($nameResolver->getCollectionClassName());
+                    $fullClassName = $nameResolver->getCollectionFullClassName();
                 }
+            }
+
+            if ($property->isNullable()) {
+                $type = new NullableType($type);
+            }
+
+            $name = BetterNaming::camelize($property->getName());
+
+            return new DtoParameterSettings($name, $type, $fullClassName, $property->isNullable());
+        }, $properties);
+    }
+
+    /**
+     * @param DtoParameterSettings[] $parameters
+     *
+     * @return UseSettings[]
+     */
+    private function getAllDtoUseSettings(array $parameters): array
+    {
+        $fullClassNames = array_map(static function (DtoParameterSettings $parameter) {
+            return $parameter->fullClassName;
+        }, $parameters);
+        $fullClassNames = array_filter($fullClassNames, static function ($fullClassName) {
+            return null !== $fullClassName;
+        });
+        $fullClassNames = array_unique($fullClassNames);
+        $fullClassNames = array_values($fullClassNames);
+
+        return array_map(static function ($fullClassName) use ($fullClassNames) {
+            $alias = Aliases::getUseAlias($fullClassName, $fullClassNames);
+
+            return new UseSettings($fullClassName, $alias);
+        }, $fullClassNames);
+    }
+
+    /**
+     * @param DtoParameterSettings[] $parameters
+     * @param UseSettings[]          $allUseSettings
+     *
+     * @return Param[]
+     */
+    private function getDtoConstructorParameters(array $parameters, array $allUseSettings): array
+    {
+        return array_map(function (DtoParameterSettings $parameter) use ($allUseSettings) {
+            return new Param(
+                var: new Variable($parameter->name),
+                type: $this->getDtoConstructorParameterType($parameter, $allUseSettings),
+                flags: Modifiers::PUBLIC | Modifiers::READONLY
+            );
+        }, $parameters);
+    }
+
+    /**
+     * @param DtoParameterSettings $parameter
+     * @param UseSettings[]        $allUseSettings
+     *
+     * @return Node|Identifier|NullableType
+     */
+    private function getDtoConstructorParameterType(DtoParameterSettings $parameter, array $allUseSettings): Node|Identifier|NullableType
+    {
+        $type                 = $parameter->type;
+        $parameterUseSettings = $this->getParameterUseSettings($parameter, $allUseSettings);
+        $alias                = $parameterUseSettings?->alias;
+        if (null !== $alias) {
+            $type = new Identifier($alias);
+            if ($parameter->isNullable) {
+                $type = new NullableType($type);
             }
         }
 
-        $fullClassNames = array_unique($fullClassNames);
+        return $type;
+    }
 
-        return array_map(static function ($fullClassName) {
-            return new Use_([new UseItem(new Name($fullClassName))]);
-        }, $fullClassNames);
+    /**
+     * @param DtoParameterSettings $parameter
+     * @param UseSettings[]        $allUseSettings
+     *
+     * @return UseSettings|null
+     */
+    private function getParameterUseSettings(DtoParameterSettings $parameter, array $allUseSettings): UseSettings|null
+    {
+        if (null === $parameter->fullClassName) {
+            return null;
+        }
+
+        return array_reduce($allUseSettings, static function ($carry, UseSettings $useSettings) use ($parameter) {
+            return $carry ?? ($useSettings->fullClassName === $parameter->fullClassName ? $useSettings : null);
+        });
+    }
+
+    /**
+     * @param UseSettings[] $allUseSettings
+     *
+     * @return Use_[]
+     */
+    private function getDtoUses(array $allUseSettings): array
+    {
+        return array_map(static function (UseSettings $useSettings) {
+            $name = new Name($useSettings->fullClassName);
+
+            return new Use_([new UseItem($name, $useSettings->alias)]);
+        }, $allUseSettings);
     }
 
     private function getNameResolver(ClassGuess $class, string $schemaOrigin): DtoNameResolver
