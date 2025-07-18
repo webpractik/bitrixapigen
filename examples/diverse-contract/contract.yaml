@@ -22,6 +22,8 @@ servers:
 tags:
     -   name: pages
         description: Работа со страницами
+    -   name: хитрый тег
+        description: Тег на русском языке и с пробелом
     -   name: meta-pages
         description: Работа с мета страницами
         externalDocs:
