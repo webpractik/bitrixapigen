@@ -234,6 +234,22 @@ paths:
                         - write:pets
                         - read:pets
                 -   openid: []
+    /same-schema-names:
+        post:
+            summary: Запрос с одинаковыми названиями схем в разных файлах
+            operationId: postSameSchemaNames
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SameSchemaNames'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SameSchemaNames'
     /with-contract-references:
         post:
             summary: Запрос со ссылками на различные файлы с основного файла
@@ -685,6 +701,14 @@ components:
                 deprecatedName:
                     type: string
                     deprecated: true
+        SameSchemaNames:
+            description: Одинаковые названия схем в разных файлах
+            type: object
+            properties:
+                contractItem:
+                    $ref: '#/components/schemas/SimpleItem'
+                notSoCommonItem:
+                    $ref: './schemas/sub-schemas/not-so-common.yaml#/SimpleItem'
         ContractReferences:
             description: Ссылки на различные файлы
             type: object
