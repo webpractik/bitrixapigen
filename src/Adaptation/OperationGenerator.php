@@ -189,7 +189,7 @@ class OperationGenerator
                 $modelFullName   = str_replace('[]', '', $v);
                 $dtoNameResolver = DtoNameResolver::createByModelFullName($modelFullName);
 
-                return new Name('\\' . $dtoNameResolver->getCollectionFullClassName());
+                return new Name($dtoNameResolver->getCollectionFullClassName());
             } catch (Throwable $e) {
                 throw new RuntimeException(var_export([
                     'dtoFullClassName' => $modelFullName,
@@ -202,7 +202,7 @@ class OperationGenerator
             $v               = $dtoNameResolver->getDtoFullClassName();
         }
 
-        return new Name\FullyQualified($v);
+        return new Name\FullyQualified(trim($v, '\\'));
     }
 
     private function ifIsModelArray(string $v): bool
