@@ -6,7 +6,9 @@ class BetterNaming
 {
     public static function getSchemaName(string $reference): string
     {
-        return preg_replace('/.+#\//', '', $reference);
+        $fragmentIdentifier = preg_replace('/.+#\//', '', $reference);
+
+        return str_replace('components/schemas/', '', $fragmentIdentifier);
     }
 
     public static function getClassName(string $reference, string $name): string
