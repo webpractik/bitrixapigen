@@ -91,7 +91,7 @@ class OperationWrapper
             return null;
         }
 
-        if (!$schema || !str_contains(($schema->getType() ?? ''), 'array')) {
+        if (!($schema instanceof Schema) || !str_contains(($schema->getType() ?? ''), 'array')) {
             return null;
         }
 
