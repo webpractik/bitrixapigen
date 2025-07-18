@@ -13,15 +13,21 @@ class BetterNaming
 
     public static function getClassName(string $reference, string $name): string
     {
-        $nameParts         = [];
-        $isMultiFileSchema = preg_match('/Response\d{3}(?<tail>.*)/', $name, $nameParts);
-        $referenceParts    = [];
-        $isReferenceParsed = preg_match('~/?([^/.]+).(json|ya?ml)#(?<basePath>.*/)(?<name>[^/]+)$~', $reference, $referenceParts);
-        if ($isMultiFileSchema && $isReferenceParsed) {
+        $nameParts             = [];
+        $isResponseNamedSchema = preg_match('/Response\d{3}(?<tail>.*)/', $name, $nameParts);
+        $referenceParts        = [];
+        $isReferenceParsed     = preg_match('~/?([^/.]+).(json|ya?ml)#(?<basePath>.*/)(?<name>[^/]+)$~', $reference, $referenceParts);
+
+        if ($isResponseNamedSchema && $isReferenceParsed) {
             $isNestedSchema = substr_count($referenceParts['basePath'], '/') > 1;
             $schemaName     = $isNestedSchema ? $nameParts['tail'] : $referenceParts['name'];
 
             return $schemaName ? ucfirst($schemaName) : $name;
+        }
+
+        $isReferenceSchema = $isReferenceParsed && in_array($referenceParts['basePath'], ['/components/schemas/', '/']);
+        if ($isReferenceSchema) {
+            return $referenceParts['name'];
         }
 
         return $name;
