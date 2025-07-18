@@ -147,7 +147,7 @@ EOD
         ]);
 
         return new Namespace_(
-            new Name($schema->getNamespace() . '\\Dto\\Collection'),
+            new Name($nameResolver->getCollectionNamespace()),
             $useDto ? [$useDto, $classNode] : [$classNode]
         );
     }
@@ -182,7 +182,7 @@ EOD
         $uses = $this->getDtoParameterUses($class, $schema);
 
         return new Namespace_(
-            new Name($schema->getNamespace() . '\\Dto'),
+            new Name($dtoNameResolver->getDtoNamespace()),
             [...$uses, $classNode]
         );
     }
