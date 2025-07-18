@@ -31,7 +31,7 @@ class DtoNameResolver
             return throw new RuntimeException('Invalid model full name: ' . $modelFullName, 400);
         }
 
-        $subNamespaceParts = explode('\\', trim($matches['subNamespace'], '\\'));
+        $subNamespaceParts = $matches['subNamespace'] ? explode('\\', trim($matches['subNamespace'], '\\')) : [];
 
         return new self($matches['modelName'], $subNamespaceParts);
     }
@@ -58,7 +58,7 @@ class DtoNameResolver
             return throw new RuntimeException('Invalid full dto class name: ' . $dtoFullClassName, 400);
         }
 
-        $subNamespaceParts = explode('\\', trim($matches['subNamespace'], '\\'));
+        $subNamespaceParts = $matches['subNamespace'] ? explode('\\', trim($matches['subNamespace'], '\\')) : [];
 
         return new self($matches['className'], $subNamespaceParts);
     }
@@ -86,7 +86,7 @@ class DtoNameResolver
             return throw new RuntimeException('Invalid dto collection class name: ' . $dtoFullCollectionClassName, 400);
         }
 
-        $subNamespaceParts = explode('\\', trim($matches['subNamespace'], '\\'));
+        $subNamespaceParts = $matches['subNamespace'] ? explode('\\', trim($matches['subNamespace'], '\\')) : [];
 
         return new self($matches['modelName'], $subNamespaceParts);
     }
