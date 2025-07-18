@@ -121,6 +121,16 @@ class DtoNameResolver
         return self::MODULE_NAMESPACE . '\\Model';
     }
 
+    public function getDtoNamespace(): string
+    {
+        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . $this->getSubNamespace();
+    }
+
+    public function getCollectionNamespace(): string
+    {
+        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . self::COLLECTION_NAMESPACE . $this->getSubNamespace();
+    }
+
     public function getDtoFullClassName(): string
     {
         return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . $this->getSubNamespace() . '\\' . $this->getDtoClassName();
