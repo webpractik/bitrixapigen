@@ -123,22 +123,22 @@ class DtoNameResolver
 
     public function getDtoNamespace(): string
     {
-        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . $this->getSubNamespace();
+        return self::getDtoBaseNamespace() . $this->getSubNamespace();
     }
 
     public function getCollectionNamespace(): string
     {
-        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . self::COLLECTION_NAMESPACE . $this->getSubNamespace();
+        return self::getCollectionBaseNamespace() . $this->getSubNamespace();
     }
 
     public function getDtoFullClassName(): string
     {
-        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . $this->getSubNamespace() . '\\' . $this->getDtoClassName();
+        return $this->getDtoNamespace() . '\\' . $this->getDtoClassName();
     }
 
     public function getCollectionFullClassName(): string
     {
-        return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE . '\\' . self::COLLECTION_NAMESPACE . $this->getSubNamespace() . '\\' . $this->getCollectionClassName();
+        return $this->getCollectionNamespace() . '\\' . $this->getCollectionClassName();
     }
 
     public function getDtoClassName(): string
