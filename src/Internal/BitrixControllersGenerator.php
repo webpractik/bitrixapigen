@@ -48,10 +48,12 @@ class BitrixControllersGenerator implements GeneratorInterface
         $schema->addFile(JsonResponseBoilerplateSchema::generate($schema->getDirectory() . DIRECTORY_SEPARATOR . 'Response'));
 
         foreach ($schema->getOperations() as $operation) {
-            if (!array_key_exists($operation->getOperation()->getTags()[0], $sortedByTags)) {
-                $sortedByTags[$operation->getOperation()->getTags()[0]] = [];
+            $tags = $operation->getOperation()->getTags();
+            $tag  = $tags ? $tags[0] : 'tagLess';
+            if (!array_key_exists($tag, $sortedByTags)) {
+                $sortedByTags[$tag] = [];
             }
-            $sortedByTags[$operation->getOperation()->getTags()[0]][] = $operation;
+            $sortedByTags[$tag][] = $operation;
         }
 
         $routerContent = [];
