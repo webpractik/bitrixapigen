@@ -52,6 +52,14 @@ class BetterNaming
         }, $parts);
     }
 
+    /**
+     * Converts a word into the format for a Doctrine class name. Converts 'table_name' to 'TableName'.
+     */
+    public static function classify(string $word): string
+    {
+        return str_replace([' ', '_', '-'], '', ucwords($word, ' _-'));
+    }
+
     private static function getShortReference(string $reference, string $schemaOrigin): string
     {
         $lastSeparatorPosition = strrpos($schemaOrigin, '/');
@@ -60,13 +68,5 @@ class BetterNaming
         }
 
         return substr($reference, $lastSeparatorPosition + 1);
-    }
-
-    /**
-     * Converts a word into the format for a Doctrine class name. Converts 'table_name' to 'TableName'.
-     */
-    private static function classify(string $word): string
-    {
-        return str_replace([' ', '_', '-'], '', ucwords($word, ' _-'));
     }
 }

@@ -49,7 +49,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
         foreach ($schema->getOperations() as $operation) {
             $tags = $operation->getOperation()->getTags();
-            $tag  = $tags ? $tags[0] : 'tagLess';
+            $tag  = BetterNaming::classify($tags && count($tags) > 0 ? $tags[0] : 'tagLess');
             if (!array_key_exists($tag, $sortedByTags)) {
                 $sortedByTags[$tag] = [];
             }
@@ -60,7 +60,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
         $routerContent[] = BoilerplateSchema::getUse('Bitrix\\Main\\Routing\\RoutingConfigurator');
         foreach ($sortedByTags as $key => $value) {
-            $controllerClassName = ucfirst($key) . $this->getSuffix();
+            $controllerClassName = $key . $this->getSuffix();
             $routerContent[]     = BoilerplateSchema::getUse($controllersNamespace . '\\' . $controllerClassName);
         }
         $routerContent[] = new Nop();
@@ -91,8 +91,8 @@ class BitrixControllersGenerator implements GeneratorInterface
         $schema->addFile(AbstractControllerBoilerplateSchema::generate($controllerDirPath, $controllersNamespace, 'AbstractController'));
 
         foreach ($sortedByTags as $key => $value) {
-            $controllerClassName = ucfirst($key) . $this->getSuffix();
-            $controllerFullPath  = $controllerDirPath . DIRECTORY_SEPARATOR . ucfirst($key) . $this->getSuffix() . '.php';
+            $controllerClassName = $key . $this->getSuffix();
+            $controllerFullPath  = $controllerDirPath . DIRECTORY_SEPARATOR . $key . $this->getSuffix() . '.php';
             $client              = $this->createResourceClass($schema, $controllerClassName);
             $useStmts            = [
                 new Stmt\Use_([new Stmt\UseUse(new Name('Webpractik\Bitrixgen\Exception\BitrixFormatException'))]),
@@ -112,7 +112,7 @@ class BitrixControllersGenerator implements GeneratorInterface
 
                 $operationName                = $this->operationNaming->getFunctionName($operation);
                 $routerMethods->expr->stmts[] = BoilerplateSchema::getMethodForRouter(
-                    $operation->getMethod(), $operation->getPath(), ucfirst($key) . $this->getSuffix(), $operationName
+                    $operation->getMethod(), $operation->getPath(), $key . $this->getSuffix(), $operationName
                 );
                 $client->stmts[]              = $this->operationGenerator->createOperation($operationName, $operation, $context);
 
