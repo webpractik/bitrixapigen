@@ -66,7 +66,7 @@ trait ModelPropertyGenerator
             $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
-            $docTypeHint = '\\' . DtoNameResolver::getCollectionNamespace() . '\\Files\\UploadedFileCollection';
+            $docTypeHint = '\\' . DtoNameResolver::getCollectionBaseNamespace() . '\\Files\\UploadedFileCollection';
         } elseif ($property->getObject() instanceof Schema && $property->getObject()->getType() === 'string' && $property->getObject()->getFormat() === 'binary') {
             $docTypeHint = str_replace('string', '\\Psr\\Http\\Message\\UploadedFileInterface', $docTypeHint);
         } elseif (str_contains($docTypeHint, '\\Model\\')) {
@@ -129,7 +129,7 @@ EOD
             $property->getObject()->getType() === 'array'
             && $property->getObject()->getItems() instanceof Schema
             && $property->getObject()->getItems()->getType() === 'string' && $property->getObject()->getItems()->getFormat() === 'binary') {
-            $phpType = '\\' . DtoNameResolver::getCollectionNamespace() . '\\Files\\UploadedFileCollection';
+            $phpType = '\\' . DtoNameResolver::getCollectionBaseNamespace() . '\\Files\\UploadedFileCollection';
 
             return new Name($phpType);
         }
