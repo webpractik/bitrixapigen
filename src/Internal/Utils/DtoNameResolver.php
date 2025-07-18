@@ -106,11 +106,6 @@ class DtoNameResolver
         return preg_match('#^\\\?' . str_replace('\\', '\\\\', self::MODULE_NAMESPACE) . '\\\\Model\\\\(?!' . self::COLLECTION_NAMESPACE . '\\\\)([A-Z][A-Za-z0-9_]+\\\\)*([A-Z][A-Za-z0-9_]+)$#', $modelFullName);
     }
 
-    public static function getCollectionBaseNamespace(): string
-    {
-        return self::getDtoBaseNamespace() . '\\' . self::COLLECTION_NAMESPACE;
-    }
-
     public static function getDtoBaseNamespace(): string
     {
         return self::MODULE_NAMESPACE . '\\' . self::DTO_NAMESPACE;
@@ -119,6 +114,11 @@ class DtoNameResolver
     public static function getModelBaseNamespace(): string
     {
         return self::MODULE_NAMESPACE . '\\Model';
+    }
+
+    public static function getCollectionBaseNamespace(): string
+    {
+        return self::getDtoBaseNamespace() . '\\' . self::COLLECTION_NAMESPACE;
     }
 
     public function getDtoNamespace(): string
