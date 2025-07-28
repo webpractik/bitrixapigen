@@ -28,6 +28,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
+use PhpParser\Node\UnionType;
 use PhpParser\Node\UseItem;
 use RuntimeException;
 use Webpractik\Bitrixapigen\Dto\DtoParameterSettings;
@@ -241,13 +242,9 @@ EOD
                 }
             }
 
-            if ($property->isNullable()) {
-                $type = new NullableType($type);
-            }
-
             $name = BetterNaming::camelize($property->getName());
 
-            return new DtoParameterSettings($name, $type, $fullClassName, $property->isNullable());
+            return new DtoParameterSettings($name, $type, $fullClassName, $property->isRequired(), $property->isNullable());
         }, $properties);
     }
 
@@ -311,9 +308,14 @@ EOD
         $alias                = $parameterUseSettings?->alias;
         if (null !== $alias) {
             $type = new Identifier($alias);
-            if ($parameter->isNullable) {
-                $type = new NullableType($type);
-            }
+        }
+
+        if ($parameter->isNullable) {
+            $type = new UnionType([$type, new Identifier('null')]);
+        }
+
+        if (!$parameter->isRequired && !($type instanceof UnionType)) {
+            $type = new NullableType($type);
         }
 
         return $type;

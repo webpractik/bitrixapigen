@@ -10,6 +10,7 @@ class DtoParameterSettings
         public readonly string $name,
         public readonly Node $type,
         public readonly null|string $fullClassName,
+        public readonly bool $isRequired,
         public readonly bool $isNullable,
     ) {
     }
