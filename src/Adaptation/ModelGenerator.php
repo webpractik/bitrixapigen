@@ -176,7 +176,7 @@ EOD
             'stmts'   => [$__construct],
         ]);
 
-        $uses = $this->getDtoUses($allUseSettings, $dtoNameResolver->getDtoFullClassName());
+        $uses = $this->getDtoUses($allUseSettings);
 
         return new Namespace_(
             new Name($dtoNameResolver->getDtoNamespace()),
@@ -338,21 +338,16 @@ EOD
 
     /**
      * @param UseSettings[] $allUseSettings
-     * @param string        $dtoFullClassName
      *
      * @return Use_[]
      */
-    private function getDtoUses(array $allUseSettings, string $dtoFullClassName): array
+    private function getDtoUses(array $allUseSettings): array
     {
-        $allUseSettingsWithoutSelfRecursion = array_filter($allUseSettings, static function (UseSettings $useSettings) use ($dtoFullClassName) {
-            return $useSettings->fullClassName !== $dtoFullClassName;
-        });
-
         return array_map(static function (UseSettings $useSettings) {
             $name = new Name($useSettings->fullClassName);
 
             return new Use_([new UseItem($name, $useSettings->alias)]);
-        }, $allUseSettingsWithoutSelfRecursion);
+        }, $allUseSettings);
     }
 
     private function getNameResolver(ClassGuess $class, string $schemaOrigin): DtoNameResolver
