@@ -159,17 +159,17 @@ EOD
     {
         $this->createDtoParameterCollections($class, $schema);
 
+        $betterClassName   = BetterNaming::getClassName($class->getReference(), $class->getName());
+        $subNamespaceParts = BetterNaming::getSubNamespaceParts($class->getReference(), $schema->getOrigin());
+        $dtoNameResolver   = DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
+
         $parameters     = $this->getDtoParameters($class->getLocalProperties(), $schema);
-        $allUseSettings = $this->getAllDtoUseSettings($parameters);
+        $allUseSettings = $this->getAllDtoUseSettings($dtoNameResolver->getDtoFullClassName(), $parameters);
 
         $__construct = new ClassMethod('__construct', [
             'params' => $this->getDtoConstructorParameters($parameters, $allUseSettings),
             'flags'  => Modifiers::PUBLIC,
         ]);
-
-        $betterClassName   = BetterNaming::getClassName($class->getReference(), $class->getName());
-        $subNamespaceParts = BetterNaming::getSubNamespaceParts($class->getReference(), $schema->getOrigin());
-        $dtoNameResolver   = DtoNameResolver::createByModelName($betterClassName, $subNamespaceParts);
 
         $classNode = new Class_($dtoNameResolver->getDtoClassName(), [
             'extends' => new Name('AbstractDto'),
@@ -252,11 +252,12 @@ EOD
     }
 
     /**
+     * @param string                 $dtoFullClassName
      * @param DtoParameterSettings[] $parameters
      *
      * @return UseSettings[]
      */
-    private function getAllDtoUseSettings(array $parameters): array
+    private function getAllDtoUseSettings(string $dtoFullClassName, array $parameters): array
     {
         $fullClassNames = array_map(static function (DtoParameterSettings $parameter) {
             return $parameter->fullClassName;
@@ -264,14 +265,20 @@ EOD
         $fullClassNames = array_filter($fullClassNames, static function ($fullClassName) {
             return null !== $fullClassName;
         });
+        // Предотвращает импорт такого же класса без псевдонима
+        $fullClassNames = [$dtoFullClassName, ...$fullClassNames];
         $fullClassNames = array_unique($fullClassNames);
         $fullClassNames = array_values($fullClassNames);
 
-        return array_map(static function ($fullClassName) use ($fullClassNames) {
+        $settings = array_map(static function ($fullClassName) use ($fullClassNames) {
             $alias = Aliases::getUseAlias($fullClassName, $fullClassNames);
 
             return new UseSettings($fullClassName, $alias);
         }, $fullClassNames);
+
+        return array_filter($settings, static function (UseSettings $useSettings) use ($dtoFullClassName) {
+            return $useSettings->fullClassName !== $dtoFullClassName;
+        });
     }
 
     /**
