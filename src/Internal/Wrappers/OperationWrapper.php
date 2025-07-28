@@ -10,11 +10,6 @@ use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 class OperationWrapper
 {
-    /**
-     * Название кастомного атрибута для обозначения роутов, которые должны возвращать результат роута в битриксовом формате {status:"success", data:{}, errors:[]}
-     */
-    private const ATTRIBUTE_BITRIX_FORMAT = 'x-bitrix-format';
-
     public function __construct(private OperationGuess $operation)
     {
     }
@@ -119,17 +114,5 @@ class OperationWrapper
         }
 
         return null;
-    }
-
-    /**
-     * Возвращает ли роут ответ в битриксовом формате {status:"success", data:{}, errors:[]}
-     *
-     * @return bool
-     */
-    public function isBitrixFormat(): bool
-    {
-        $operationData = $this->operation->getOperation();
-
-        return isset($operationData[self::ATTRIBUTE_BITRIX_FORMAT]) && $operationData[self::ATTRIBUTE_BITRIX_FORMAT] === true;
     }
 }

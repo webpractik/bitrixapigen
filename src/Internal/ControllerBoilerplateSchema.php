@@ -165,65 +165,28 @@ class ControllerBoilerplateSchema
 
         $isNeedReturnData = count($returnTypes) > 1 || reset($returnTypes) !== 'null';
 
-        if ($operationWrapped->isBitrixFormat()) {
-            $tryBlock = $stmts;
-
-            if ($isNeedReturnData) {
-                $tryBlock[] = new Return_(
-                    $useCaseCallMethod
-                );
-            } else {
-                $tryBlock[] = new Expression(
-                    $useCaseCallMethod
-                );
-            }
-
-            $catchStmt = new Catch_(
-                [new Name('Throwable')],
-                new Variable('e'),
-                [
-                    new Expression(
-                        new Throw_(
-                            new StaticCall(
-                                new Name('BitrixFormatException'),
-                                'from',
-                                [new Arg(new Variable('e'))]
-                            )
-                        )
-                    ),
-                ]
+        if ($isNeedReturnData) {
+            $stmts[] = new Return_(
+                new New_(
+                    new FullyQualified("Bitrix\Main\Engine\Response\Json"),
+                    [
+                        new Arg(
+                            $useCaseCallMethod
+                        ),
+                    ]
+                )
+            );
+        } else {
+            $stmts[] = new Expression(
+                $useCaseCallMethod
             );
 
-            $stmts = [
-                new Stmt\TryCatch(
-                    $tryBlock,
-                    [$catchStmt]
-                ),
-            ];
-        } else {
-            if ($isNeedReturnData) {
-                $stmts[] = new Return_(
-                    new New_(
-                        new FullyQualified("Bitrix\Main\Engine\Response\Json"),
-                        [
-                            new Arg(
-                                $useCaseCallMethod
-                            ),
-                        ]
-                    )
-                );
-            } else {
-                $stmts[] = new Expression(
-                    $useCaseCallMethod
-                );
-
-                $stmts[] = new Return_(
-                    new New_(
-                        new FullyQualified("Bitrix\Main\HttpResponse"),
-                        []
-                    )
-                );
-            }
+            $stmts[] = new Return_(
+                new New_(
+                    new FullyQualified("Bitrix\Main\HttpResponse"),
+                    []
+                )
+            );
         }
 
         return new ClassMethod(
