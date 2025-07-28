@@ -44,7 +44,7 @@ use Webpractik\Bitrixapigen\Internal\Utils\DtoNameResolver;
 
 use const DIRECTORY_SEPARATOR;
 
-class ModelGenerator extends BaseModelGenerator
+class DtoGenerator extends BaseModelGenerator
 {
     use ClassGenerator;
     use ModelPropertyGenerator;
