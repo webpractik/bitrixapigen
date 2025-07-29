@@ -119,6 +119,8 @@ class ClassFileBuilder
         });
 
         if (count($sameClassNames) > 1) {
+            $sameClassNames = array_values($sameClassNames);
+
             $index = array_search($fullClassName, $sameClassNames);
 
             return $className . $index;
