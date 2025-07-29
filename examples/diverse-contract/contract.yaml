@@ -454,6 +454,22 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/DeepObject'
+    /aliasing:
+        post:
+            summary: Запрос с работой с алиасами
+            operationId: postAliasing
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Aliasing'
+            responses:
+                '200':
+                    description: ОК
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Aliasing'
     /binary-bodies:
         post:
             summary: Запрос с файлами в запросе и ответе
@@ -859,6 +875,18 @@ components:
                                 properties:
                                     name:
                                         type: string
+        Aliasing:
+            description: Схема для работы с алиасами
+            type: object
+            properties:
+                abstract:
+                    $ref: '#/components/schemas/Abstract'
+        Abstract:
+            description: Схема с зарезервированным именем
+            type: object
+            properties:
+                name:
+                    type: string
         SimpleItem:
             type: object
             properties:
