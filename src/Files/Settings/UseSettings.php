@@ -1,6 +1,8 @@
 <?php
 
-namespace Webpractik\Bitrixapigen\Dto;
+declare(strict_types=1);
+
+namespace Webpractik\Bitrixapigen\Files\Settings;
 
 class UseSettings
 {
